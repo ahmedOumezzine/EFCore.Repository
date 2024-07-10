@@ -15,9 +15,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <typeparam name="T">The type of the entity to count.</typeparam>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the count of entities.</returns>
-        public async Task<int> GetCountAsync<T>(CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<int> GetCountAsync<TEntity>(CancellationToken cancellationToken = default)
+                               where TEntity : BaseEntity
         {
-            int count = await _dbContext.Set<T>().CountAsync(cancellationToken).ConfigureAwait(false);
+            int count = await _dbContext.Set<TEntity>().CountAsync(cancellationToken).ConfigureAwait(false);
             return count;
         }
 
@@ -28,9 +29,11 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="condition">The condition to filter entities.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the count of entities.</returns>
-        public async Task<int> GetCountAsync<T>(Expression<Func<T, bool>> condition, CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<int> GetCountAsync<TEntity>(Expression<Func<TEntity, bool>> condition,
+                                                CancellationToken cancellationToken = default)
+                               where TEntity : BaseEntity
         {
-            IQueryable<T> query = _dbContext.Set<T>();
+            IQueryable<TEntity> query = _dbContext.Set<TEntity>();
 
             if (condition != null)
             {
@@ -47,13 +50,15 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="conditions">The list of conditions to filter entities.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the count of entities.</returns>
-        public async Task<int> GetCountAsync<T>(IEnumerable<Expression<Func<T, bool>>> conditions, CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<int> GetCountAsync<TEntity>(IEnumerable<Expression<Func<TEntity, bool>>> conditions,
+                                                CancellationToken cancellationToken = default)
+                               where TEntity : BaseEntity
         {
-            IQueryable<T> query = _dbContext.Set<T>();
+            IQueryable<TEntity> query = _dbContext.Set<TEntity>();
 
             if (conditions != null)
             {
-                foreach (Expression<Func<T, bool>> expression in conditions)
+                foreach (Expression<Func<TEntity, bool>> expression in conditions)
                 {
                     query = query.Where(expression);
                 }
@@ -68,9 +73,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <typeparam name="T">The type of the entity to count.</typeparam>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the long count of entities.</returns>
-        public async Task<long> GetLongCountAsync<T>(CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<long> GetLongCountAsync<TEntity>(CancellationToken cancellationToken = default)
+                                where TEntity : BaseEntity
         {
-            long count = await _dbContext.Set<T>().LongCountAsync(cancellationToken).ConfigureAwait(false);
+            long count = await _dbContext.Set<TEntity>().LongCountAsync(cancellationToken).ConfigureAwait(false);
             return count;
         }
 
@@ -81,9 +87,11 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="condition">The condition to filter entities.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the long count of entities.</returns>
-        public async Task<long> GetLongCountAsync<T>(Expression<Func<T, bool>> condition, CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<long> GetLongCountAsync<TEntity>(Expression<Func<TEntity, bool>> condition,
+                                                     CancellationToken cancellationToken = default)
+                                where TEntity : BaseEntity
         {
-            IQueryable<T> query = _dbContext.Set<T>();
+            IQueryable<TEntity> query = _dbContext.Set<TEntity>();
 
             if (condition != null)
             {
@@ -100,13 +108,15 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="conditions">The list of conditions to filter entities.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the long count of entities.</returns>
-        public async Task<long> GetLongCountAsync<T>(IEnumerable<Expression<Func<T, bool>>> conditions, CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<long> GetLongCountAsync<TEntity>(IEnumerable<Expression<Func<TEntity, bool>>> conditions,
+                                                     CancellationToken cancellationToken = default)
+                                where TEntity : BaseEntity
         {
-            IQueryable<T> query = _dbContext.Set<T>();
+            IQueryable<TEntity> query = _dbContext.Set<TEntity>();
 
             if (conditions != null)
             {
-                foreach (Expression<Func<T, bool>> expression in conditions)
+                foreach (Expression<Func<TEntity, bool>> expression in conditions)
                 {
                     query = query.Where(expression);
                 }

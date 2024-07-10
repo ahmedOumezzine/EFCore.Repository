@@ -1,9 +1,6 @@
 ﻿using AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using System.Data;
-using System.Globalization;
 using System.Linq.Expressions;
 
 namespace AhmedOumezzine.EFCore.Repository.Repository
@@ -18,9 +15,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a boolean value that indicates whether any entity of the specified type exists in the context.</returns>
 
-        public Task<bool> ExistsAsync<T>(CancellationToken cancellationToken = default) where T : BaseEntity
+        public Task<bool> ExistsAsync<TEntity>(CancellationToken cancellationToken = default)
+                          where TEntity : BaseEntity
         {
-            return ExistsAsync<T>(null, cancellationToken);
+            return ExistsAsync<TEntity>(null, cancellationToken);
         }
 
         /// <summary>
@@ -31,9 +29,11 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a boolean value that indicates whether any entity of the specified type that matches the condition exists in the context.</returns>
 
-        public async Task<bool> ExistsAsync<T>(Expression<Func<T, bool>> condition, CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<bool> ExistsAsync<TEntity>(Expression<Func<TEntity, bool>> condition,
+                                                     CancellationToken cancellationToken = default)
+                                where TEntity : BaseEntity
         {
-            IQueryable<T> query = _dbContext.Set<T>();
+            IQueryable<TEntity> query = _dbContext.Set<TEntity>();
 
             if (condition == null)
             {
@@ -54,41 +54,17 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <exception cref="ArgumentNullException">Thrown when the provided primary key value is null.</exception>
         /// <exception cref="ArgumentException">Thrown when the entity does not have any primary key defined or the provided primary key value cannot be assigned to the primary key property.</exception>
 
-        public async Task<bool> ExistsByIdAsync<T>(object id, CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<bool> ExistsByIdAsync<TEntity>(Guid id,
+                                                   CancellationToken cancellationToken = default)
+                                where TEntity : BaseEntity
         {
             if (id == null)
             {
                 throw new ArgumentNullException(nameof(id));
             }
+            Expression<Func<TEntity, bool>> expressionTree = x => x.Id == id && x.IsDeleted == false;
 
-            IEntityType entityType = _dbContext.Model.FindEntityType(typeof(T));
-
-            string primaryKeyName = entityType.FindPrimaryKey().Properties.Select(p => p.Name).FirstOrDefault();
-            Type primaryKeyType = entityType.FindPrimaryKey().Properties.Select(p => p.ClrType).FirstOrDefault();
-
-            if (primaryKeyName == null || primaryKeyType == null)
-            {
-                throw new ArgumentException("Entity does not have any primary key defined", nameof(id));
-            }
-
-            object primaryKeyValue = null;
-
-            try
-            {
-                primaryKeyValue = Convert.ChangeType(id, primaryKeyType, CultureInfo.InvariantCulture);
-            }
-            catch (Exception)
-            {
-                throw new ArgumentException($"You can not assign a value of type {id.GetType()} to a property of type {primaryKeyType}");
-            }
-
-            ParameterExpression pe = Expression.Parameter(typeof(T), "entity");
-            MemberExpression me = Expression.Property(pe, primaryKeyName);
-            ConstantExpression constant = Expression.Constant(primaryKeyValue, primaryKeyType);
-            BinaryExpression body = Expression.Equal(me, constant);
-            Expression<Func<T, bool>> expressionTree = Expression.Lambda<Func<T, bool>>(body, new[] { pe });
-
-            IQueryable<T> query = _dbContext.Set<T>();
+            IQueryable<TEntity> query = _dbContext.Set<TEntity>();
 
             bool isExistent = await query.AnyAsync(expressionTree, cancellationToken).ConfigureAwait(false);
             return isExistent;

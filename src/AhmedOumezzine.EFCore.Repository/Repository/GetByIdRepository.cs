@@ -1,10 +1,8 @@
 ﻿using AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using System.Data;
-using System.Globalization;
 using System.Linq.Expressions;
 
 namespace AhmedOumezzine.EFCore.Repository.Repository
@@ -20,14 +18,16 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the entity if found; otherwise, null.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the provided primary key value is null.</exception>
-        public Task<T> GetByIdAsync<T>(object id, CancellationToken cancellationToken = default) where T : BaseEntity
+        public Task<TEntity> GetByIdAsync<TEntity>(Guid id,
+                                       CancellationToken cancellationToken = default)
+                       where TEntity : BaseEntity
         {
             if (id == null)
             {
                 throw new ArgumentNullException(nameof(id));
             }
 
-            return GetByIdAsync<T>(id, false, cancellationToken);
+            return GetByIdAsync<TEntity>(id, false, cancellationToken);
         }
 
         /// <summary>
@@ -39,14 +39,17 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the entity if found; otherwise, null.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the provided primary key value is null.</exception>
-        public Task<T> GetByIdAsync<T>(object id, bool asNoTracking, CancellationToken cancellationToken = default) where T : BaseEntity
+        public Task<TEntity> GetByIdAsync<TEntity>(Guid id,
+                                       bool asNoTracking,
+                                       CancellationToken cancellationToken = default)
+                       where TEntity : BaseEntity
         {
             if (id == null)
             {
                 throw new ArgumentNullException(nameof(id));
             }
 
-            return GetByIdAsync<T>(id, null, asNoTracking, cancellationToken);
+            return GetByIdAsync<TEntity>(id, null, asNoTracking, cancellationToken);
         }
 
         /// <summary>
@@ -58,10 +61,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the entity if found; otherwise, null.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the provided primary key value is null.</exception>
-        public Task<T> GetByIdAsync<T>(
-            object id,
-            Func<IQueryable<T>, IIncludableQueryable<T, object>> includes,
-            CancellationToken cancellationToken = default) where T : BaseEntity
+        public Task<TEntity> GetByIdAsync<TEntity>(Guid id,
+                                       Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
+                                       CancellationToken cancellationToken = default)
+                       where TEntity : BaseEntity
         {
             if (id == null)
             {
@@ -82,45 +85,19 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <returns>A task that represents the asynchronous operation. The task result contains the entity if found; otherwise, null.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the provided primary key value is null.</exception>
 
-        public async Task<T> GetByIdAsync<T>(
-            object id,
-            Func<IQueryable<T>, IIncludableQueryable<T, object>> includes,
-            bool asNoTracking = false,
-            CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<TEntity> GetByIdAsync<TEntity>(Guid id,
+                                             Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
+                                             bool asNoTracking = false,
+                                             CancellationToken cancellationToken = default)
+                             where TEntity : BaseEntity
         {
             if (id == null)
             {
                 throw new ArgumentNullException(nameof(id));
             }
+            Expression<Func<TEntity, bool>> expressionTree = x => x.Id == id && x.IsDeleted == false;
 
-            IEntityType entityType = _dbContext.Model.FindEntityType(typeof(T));
-
-            string primaryKeyName = entityType.FindPrimaryKey().Properties.Select(p => p.Name).FirstOrDefault();
-            Type primaryKeyType = entityType.FindPrimaryKey().Properties.Select(p => p.ClrType).FirstOrDefault();
-
-            if (primaryKeyName == null || primaryKeyType == null)
-            {
-                throw new ArgumentException("Entity does not have any primary key defined", nameof(id));
-            }
-
-            object primaryKeyValue = null;
-
-            try
-            {
-                primaryKeyValue = Convert.ChangeType(id, primaryKeyType, CultureInfo.InvariantCulture);
-            }
-            catch (Exception)
-            {
-                throw new ArgumentException($"You can not assign a value of type {id.GetType()} to a property of type {primaryKeyType}");
-            }
-
-            ParameterExpression pe = Expression.Parameter(typeof(T), "entity");
-            MemberExpression me = Expression.Property(pe, primaryKeyName);
-            ConstantExpression constant = Expression.Constant(primaryKeyValue, primaryKeyType);
-            BinaryExpression body = Expression.Equal(me, constant);
-            Expression<Func<T, bool>> expressionTree = Expression.Lambda<Func<T, bool>>(body, new[] { pe });
-
-            IQueryable<T> query = _dbContext.Set<T>();
+            IQueryable<TEntity> query = _dbContext.Set<TEntity>();
 
             if (includes != null)
             {
@@ -132,8 +109,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 query = query.AsNoTracking();
             }
 
-            T entity = await query.FirstOrDefaultAsync(expressionTree, cancellationToken).ConfigureAwait(false);
-            return entity;
+            return await query.FirstOrDefaultAsync(expressionTree, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -147,10 +123,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <returns>A task that represents the asynchronous operation. The task result contains the projected entity if found; otherwise, null.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the provided primary key value or projection expression is null.</exception>
 
-        public async Task<TProjectedType> GetByIdAsync<T, TProjectedType>(
-            object id,
-            Expression<Func<T, TProjectedType>> selectExpression,
-            CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<TProjectedType> GetByIdAsync<TEntity, TProjectedType>(Guid id,
+                                                                          Expression<Func<TEntity, TProjectedType>> selectExpression,
+                                                                          CancellationToken cancellationToken = default)
+                                          where TEntity : BaseEntity
         {
             if (id == null)
             {
@@ -161,35 +137,9 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             {
                 throw new ArgumentNullException(nameof(selectExpression));
             }
+            Expression<Func<TEntity, bool>> expressionTree = x => x.Id == id && x.IsDeleted == false;
 
-            IEntityType entityType = _dbContext.Model.FindEntityType(typeof(T));
-
-            string primaryKeyName = entityType.FindPrimaryKey().Properties.Select(p => p.Name).FirstOrDefault();
-            Type primaryKeyType = entityType.FindPrimaryKey().Properties.Select(p => p.ClrType).FirstOrDefault();
-
-            if (primaryKeyName == null || primaryKeyType == null)
-            {
-                throw new ArgumentException("Entity does not have any primary key defined", nameof(id));
-            }
-
-            object primaryKeyValue = null;
-
-            try
-            {
-                primaryKeyValue = Convert.ChangeType(id, primaryKeyType, CultureInfo.InvariantCulture);
-            }
-            catch (Exception)
-            {
-                throw new ArgumentException($"You can not assign a value of type {id.GetType()} to a property of type {primaryKeyType}");
-            }
-
-            ParameterExpression pe = Expression.Parameter(typeof(T), "entity");
-            MemberExpression me = Expression.Property(pe, primaryKeyName);
-            ConstantExpression constant = Expression.Constant(primaryKeyValue, primaryKeyType);
-            BinaryExpression body = Expression.Equal(me, constant);
-            Expression<Func<T, bool>> expressionTree = Expression.Lambda<Func<T, bool>>(body, new[] { pe });
-
-            IQueryable<T> query = _dbContext.Set<T>();
+            IQueryable<TEntity> query = _dbContext.Set<TEntity>();
 
             return await query.Where(expressionTree)
                               .Select(selectExpression)
