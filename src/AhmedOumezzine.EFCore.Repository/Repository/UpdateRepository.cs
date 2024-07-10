@@ -19,10 +19,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <exception cref="InvalidOperationException">Thrown when the entity type is not part of the DbContext model or when the primary key value of the entity is not valid.</exception>
         public void Update<TEntity>(TEntity entity) where TEntity : BaseEntity
         {
-            if (entity == null)
-            {
-                throw new ArgumentNullException(nameof(entity));
-            }
+            CheckEntityIsNull<TEntity>(entity);
 
             EntityEntry<TEntity> trackedEntity = _dbContext.ChangeTracker
                                                            .Entries<TEntity>()
@@ -53,6 +50,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                     }
                 }
 
+                SetLastModifiedOnUtc(entity);
                 _dbContext.Set<TEntity>().Update(entity);
             }
         }
@@ -65,11 +63,8 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <exception cref="ArgumentNullException">Thrown when the collection of entities is null.</exception>
         public void Update<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity
         {
-            if (entities == null)
-            {
-                throw new ArgumentNullException(nameof(entities));
-            }
-
+            CheckEntitiesIsNull<TEntity>(entities);
+            SetLastModifiedOnUtc(entities);
             _dbContext.Set<TEntity>().UpdateRange(entities);
         }
 
@@ -85,10 +80,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         public async Task<int> UpdateAsync<TEntity>(TEntity entity,
                                                     CancellationToken cancellationToken = default) where TEntity : BaseEntity
         {
-            if (entity == null)
-            {
-                throw new ArgumentNullException(nameof(entity));
-            }
+            CheckEntityIsNull<TEntity>(entity);
 
             EntityEntry<TEntity> trackedEntity = _dbContext.ChangeTracker.Entries<TEntity>().FirstOrDefault(x => x.Entity == entity);
 
@@ -116,7 +108,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                         throw new InvalidOperationException("The primary key value of the entity to be updated is not valid.");
                     }
                 }
-
+                SetLastModifiedOnUtc(entity);
                 _dbContext.Set<TEntity>().Update(entity);
             }
 
@@ -132,15 +124,12 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result represents the number of entities updated in the database.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the collection of entities is null.</exception>
-        public async Task<int> UpdateAsync<T>(IEnumerable<T> entities,
-                                             CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<int> UpdateAsync<TEntity>(IEnumerable<TEntity> entities,
+                                             CancellationToken cancellationToken = default) where TEntity : BaseEntity
         {
-            if (entities == null)
-            {
-                throw new ArgumentNullException(nameof(entities));
-            }
-
-            _dbContext.Set<T>().UpdateRange(entities);
+            CheckEntitiesIsNull<TEntity>(entities);
+            SetLastModifiedOnUtc(entities);
+            _dbContext.Set<TEntity>().UpdateRange(entities);
             int count = await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return count;
         }

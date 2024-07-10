@@ -14,13 +14,11 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="entity">The entity to remove from the context.</param>
         /// <exception cref="ArgumentNullException">Thrown when the provided entity is null.</exception>
 
-        public void Remove<TEntity>(TEntity entity) where TEntity : BaseEntity
+        public void Remove<TEntity>(TEntity entity)
+                    where TEntity : BaseEntity
         {
-            if (entity == null)
-            {
-                throw new ArgumentNullException(nameof(entity));
-            }
-
+            CheckEntityIsNull<TEntity>(entity);
+            SetDeleted(entity);
             _dbContext.Set<TEntity>().Remove(entity);
         }
 
@@ -31,13 +29,11 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="entities">The collection of entities to remove from the context.</param>
         /// <exception cref="ArgumentNullException">Thrown when the provided collection of entities is null.</exception>
 
-        public void Remove<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity
+        public void Remove<TEntity>(IEnumerable<TEntity> entities)
+                    where TEntity : BaseEntity
         {
-            if (entities == null)
-            {
-                throw new ArgumentNullException(nameof(entities));
-            }
-
+            CheckEntitiesIsNull<TEntity>(entities);
+            SetDeleted(entities);
             _dbContext.Set<TEntity>().RemoveRange(entities);
         }
 
@@ -49,14 +45,13 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>The number of state entries written to the database.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the provided entity is null.</exception>
-        public async Task<int> DeleteAsync<T>(T entity, CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<int> DeleteAsync<TEntity>(TEntity entity,
+                                              CancellationToken cancellationToken = default)
+                               where TEntity : BaseEntity
         {
-            if (entity == null)
-            {
-                throw new ArgumentNullException(nameof(entity));
-            }
-
-            _dbContext.Set<T>().Remove(entity);
+            CheckEntityIsNull<TEntity>(entity);
+            SetDeleted(entity);
+            _dbContext.Set<TEntity>().Remove(entity);
             int count = await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return count;
         }
@@ -70,14 +65,13 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <returns>The number of state entries written to the database.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the provided collection of entities is null.</exception>
 
-        public async Task<int> DeleteAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<int> DeleteAsync<TEntity>(IEnumerable<TEntity> entities,
+                                              CancellationToken cancellationToken = default)
+                               where TEntity : BaseEntity
         {
-            if (entities == null)
-            {
-                throw new ArgumentNullException(nameof(entities));
-            }
-
-            _dbContext.Set<T>().RemoveRange(entities);
+            CheckEntitiesIsNull<TEntity>(entities);
+            SetDeleted(entities);
+            _dbContext.Set<TEntity>().RemoveRange(entities);
             int count = await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return count;
         }
