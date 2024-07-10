@@ -16,13 +16,11 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="entity">The entity to add. Cannot be null.</param>
         /// <returns>Void (no explicit return value).</returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="entity"/> parameter is null.</exception>
-        public void Add<TEntity>(TEntity entity) where TEntity : BaseEntity
+        public void Add<TEntity>(TEntity entity)
+                    where TEntity : BaseEntity
         {
-            if (entity == null)
-            {
-                throw new ArgumentNullException(nameof(entity));
-            }
-
+            CheckEntityIsNull<TEntity>(entity);
+            SetCreatedOnUtc(entity);
             _dbContext.Set<TEntity>().Add(entity);
         }
 
@@ -35,13 +33,12 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <returns>A task representing the asynchronous operation.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="entity"/> parameter is null.</exception>
 
-        public async Task AddAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : BaseEntity
+        public async Task AddAsync<TEntity>(TEntity entity,
+                                           CancellationToken cancellationToken = default)
+                          where TEntity : BaseEntity
         {
-            if (entity == null)
-            {
-                throw new ArgumentNullException(nameof(entity));
-            }
-
+            CheckEntityIsNull<TEntity>(entity);
+            SetCreatedOnUtc(entity);
             await _dbContext.Set<TEntity>().AddAsync(entity, cancellationToken).ConfigureAwait(false);
         }
 
@@ -51,13 +48,11 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <typeparam name="TEntity">The type of entities to add.</typeparam>
         /// <param name="entities">The collection of entities to add. Cannot be null.</param>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="entities"/> parameter is null.</exception>
-        public void Add<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity
+        public void Add<TEntity>(IEnumerable<TEntity> entities)
+                    where TEntity : BaseEntity
         {
-            if (entities == null)
-            {
-                throw new ArgumentNullException(nameof(entities));
-            }
-
+            CheckEntitiesIsNull<TEntity>(entities);
+            SetCreatedOnUtc(entities);
             _dbContext.Set<TEntity>().AddRange(entities);
         }
 
@@ -69,13 +64,12 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">Optional. The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="entities"/> parameter is null.</exception>
-        public async Task AddAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default) where TEntity : BaseEntity
+        public async Task AddAsync<TEntity>(IEnumerable<TEntity> entities,
+                                            CancellationToken cancellationToken = default)
+                          where TEntity : BaseEntity
         {
-            if (entities == null)
-            {
-                throw new ArgumentNullException(nameof(entities));
-            }
-
+            CheckEntitiesIsNull<TEntity>(entities);
+            SetCreatedOnUtc(entities);
             await _dbContext.Set<TEntity>().AddRangeAsync(entities, cancellationToken).ConfigureAwait(false);
         }
 
@@ -87,18 +81,15 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">Optional. The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns>An array of primary key values of the inserted entity.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="entity"/> parameter is null.</exception>
-        public async Task<object[]> InsertAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : BaseEntity
+        public async Task<object[]> InsertAsync<TEntity>(TEntity entity,
+                                                         CancellationToken cancellationToken = default)
+                                    where TEntity : BaseEntity
         {
-            if (entity == null)
-            {
-                throw new ArgumentNullException(nameof(entity));
-            }
-
+            CheckEntityIsNull<TEntity>(entity);
+            SetCreatedOnUtc(entity);
             EntityEntry<TEntity> entityEntry = await _dbContext.Set<TEntity>().AddAsync(entity, cancellationToken).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
-            object[] primaryKeyValue = entityEntry.Metadata.FindPrimaryKey().Properties.
-                Select(p => entityEntry.Property(p.Name).CurrentValue).ToArray();
+            object[] primaryKeyValue = entityEntry.Metadata.FindPrimaryKey().Properties.Select(p => entityEntry.Property(p.Name).CurrentValue).ToArray();
 
             return primaryKeyValue;
         }
@@ -111,13 +102,12 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">Optional. The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="entities"/> parameter is null.</exception>
-        public async Task InsertAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default) where TEntity : BaseEntity
+        public async Task InsertAsync<TEntity>(IEnumerable<TEntity> entities,
+                                               CancellationToken cancellationToken = default)
+                          where TEntity : BaseEntity
         {
-            if (entities == null)
-            {
-                throw new ArgumentNullException(nameof(entities));
-            }
-
+            CheckEntitiesIsNull<TEntity>(entities);
+            SetCreatedOnUtc(entities);
             await _dbContext.Set<TEntity>().AddRangeAsync(entities, cancellationToken).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }

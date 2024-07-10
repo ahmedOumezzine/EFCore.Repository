@@ -18,9 +18,9 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="condition">The condition to filter entities.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the first entity matching the condition, or null if none is found.</returns>
-        public Task<T> GetAsync<T>(
-            Expression<Func<T, bool>> condition,
-            CancellationToken cancellationToken = default) where T : BaseEntity
+        public Task<TEntity> GetAsync<TEntity>(
+            Expression<Func<TEntity, bool>> condition,
+            CancellationToken cancellationToken = default) where TEntity : BaseEntity
         {
             return GetAsync(condition, null, false, cancellationToken);
         }
@@ -33,10 +33,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="asNoTracking">Indicates whether to track changes for the retrieved entity.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the first entity matching the condition, or null if none is found.</returns>
-        public Task<T> GetAsync<T>(
-            Expression<Func<T, bool>> condition,
+        public Task<TEntity> GetAsync<TEntity>(
+            Expression<Func<TEntity, bool>> condition,
             bool asNoTracking,
-            CancellationToken cancellationToken = default) where T : BaseEntity
+            CancellationToken cancellationToken = default) where TEntity : BaseEntity
         {
             return GetAsync(condition, null, asNoTracking, cancellationToken);
         }
@@ -49,10 +49,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="includes">A function to include related entities in the query.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the first entity matching the condition, or null if none is found.</returns>
-        public Task<T> GetAsync<T>(
-            Expression<Func<T, bool>> condition,
-            Func<IQueryable<T>, IIncludableQueryable<T, object>> includes,
-            CancellationToken cancellationToken = default) where T : BaseEntity
+        public Task<TEntity> GetAsync<TEntity>(
+            Expression<Func<TEntity, bool>> condition,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
+            CancellationToken cancellationToken = default) where TEntity : BaseEntity
         {
             return GetAsync(condition, includes, false, cancellationToken);
         }
@@ -66,13 +66,13 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="asNoTracking">Indicates whether to track changes for the retrieved entity.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the first entity matching the condition, or null if none is found.</returns>
-        public async Task<T> GetAsync<T>(
-            Expression<Func<T, bool>> condition,
-            Func<IQueryable<T>, IIncludableQueryable<T, object>> includes,
+        public async Task<TEntity> GetAsync<TEntity>(
+            Expression<Func<TEntity, bool>> condition,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
             bool asNoTracking,
-            CancellationToken cancellationToken = default) where T : BaseEntity
+            CancellationToken cancellationToken = default) where TEntity : BaseEntity
         {
-            IQueryable<T> query = _dbContext.Set<T>();
+            IQueryable<TEntity> query = _dbContext.Set<TEntity>();
 
             if (condition != null)
             {
@@ -100,14 +100,14 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the first entity matching the specification, or null if none is found.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the provided specification is null.</exception>
-        public Task<T> GetAsync<T>(Specification<T> specification, CancellationToken cancellationToken = default) where T : BaseEntity
+        public Task<TEntity> GetAsync<TEntity>(Specification<TEntity> specification, CancellationToken cancellationToken = default) where TEntity : BaseEntity
         {
             return GetAsync(specification, false, cancellationToken);
         }
 
-        public async Task<T> GetAsync<T>(Specification<T> specification, bool asNoTracking, CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<TEntity> GetAsync<TEntity>(Specification<TEntity> specification, bool asNoTracking, CancellationToken cancellationToken = default) where TEntity : BaseEntity
         {
-            IQueryable<T> query = _dbContext.Set<T>();
+            IQueryable<TEntity> query = _dbContext.Set<TEntity>();
 
             if (specification != null)
             {
@@ -131,17 +131,17 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the first entity matching the specification, or null if none is found.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the provided specification is null.</exception>
-        public async Task<TProjectedType> GetAsync<T, TProjectedType>(
-            Expression<Func<T, bool>> condition,
-            Expression<Func<T, TProjectedType>> selectExpression,
-            CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<TProjectedType> GetAsync<TEntity, TProjectedType>(
+            Expression<Func<TEntity, bool>> condition,
+            Expression<Func<TEntity, TProjectedType>> selectExpression,
+            CancellationToken cancellationToken = default) where TEntity : BaseEntity
         {
             if (selectExpression == null)
             {
                 throw new ArgumentNullException(nameof(selectExpression));
             }
 
-            IQueryable<T> query = _dbContext.Set<T>();
+            IQueryable<TEntity> query = _dbContext.Set<TEntity>();
 
             if (condition != null)
             {
@@ -161,17 +161,17 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the projected entity matching the condition, or default(TProjectedType) if none is found.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the provided select expression is null.</exception>
-        public async Task<TProjectedType> GetAsync<T, TProjectedType>(
-                                                            Specification<T> specification,
-                                                            Expression<Func<T, TProjectedType>> selectExpression,
-                                                            CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<TProjectedType> GetAsync<TEntity, TProjectedType>(
+                                                            Specification<TEntity> specification,
+                                                            Expression<Func<TEntity, TProjectedType>> selectExpression,
+                                                            CancellationToken cancellationToken = default) where TEntity : BaseEntity
         {
             if (selectExpression == null)
             {
                 throw new ArgumentNullException(nameof(selectExpression));
             }
 
-            IQueryable<T> query = _dbContext.Set<T>();
+            IQueryable<TEntity> query = _dbContext.Set<TEntity>();
 
             if (specification != null)
             {
