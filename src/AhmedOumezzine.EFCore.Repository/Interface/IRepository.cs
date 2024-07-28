@@ -16,7 +16,6 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
         Task InsertAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity;
 
-        [Obsolete("The method will be removed in the next version. Please use Update() and SaveChangesAsync() methods together.")]
         Task<int> UpdateAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
       where TEntity : BaseEntity;
 
