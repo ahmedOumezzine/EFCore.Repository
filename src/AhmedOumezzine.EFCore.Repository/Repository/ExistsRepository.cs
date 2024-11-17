@@ -54,7 +54,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <exception cref="ArgumentNullException">Thrown when the provided primary key value is null.</exception>
         /// <exception cref="ArgumentException">Thrown when the entity does not have any primary key defined or the provided primary key value cannot be assigned to the primary key property.</exception>
 
-        public async Task<bool> ExistsByIdAsync<TEntity>(Guid id,
+        public async Task<bool> ExistsByIdAsync<TEntity>(Guid? id,
                                                    CancellationToken cancellationToken = default)
                                 where TEntity : BaseEntity
         {

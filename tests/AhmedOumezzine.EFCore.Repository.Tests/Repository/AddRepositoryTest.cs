@@ -27,7 +27,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests.Repository
 
     public class MyEntity : BaseEntity
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public int RelatedEntityId { get; set; }
         public MyRelatedEntity RelatedEntity { get; set; }

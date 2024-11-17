@@ -47,7 +47,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
                 var repository = new AhmedOumezzine.EFCore.Repository.Repository.Repository<MyDbContext>(context);
 
                 // Act
-                var retrievedEntity = await repository.GetByIdAsync<MyEntity>(999);
+                var retrievedEntity = await repository.GetByIdAsync<MyEntity>(Guid.NewGuid());
 
                 // Assert
                 Assert.IsNull(retrievedEntity);

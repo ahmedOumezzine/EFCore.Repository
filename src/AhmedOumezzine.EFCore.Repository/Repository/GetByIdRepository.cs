@@ -18,7 +18,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the entity if found; otherwise, null.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the provided primary key value is null.</exception>
-        public Task<TEntity> GetByIdAsync<TEntity>(Guid id,
+        public Task<TEntity> GetByIdAsync<TEntity>(Guid? id,
                                        CancellationToken cancellationToken = default)
                        where TEntity : BaseEntity
         {
@@ -27,7 +27,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 throw new ArgumentNullException(nameof(id));
             }
 
-            return GetByIdAsync<TEntity>(id, false, cancellationToken);
+            return GetByIdAsync<TEntity>(id.Value, false, cancellationToken);
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the entity if found; otherwise, null.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the provided primary key value is null.</exception>
-        public Task<TEntity> GetByIdAsync<TEntity>(Guid id,
+        public Task<TEntity> GetByIdAsync<TEntity>(Guid? id,
                                        bool asNoTracking,
                                        CancellationToken cancellationToken = default)
                        where TEntity : BaseEntity
@@ -49,7 +49,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 throw new ArgumentNullException(nameof(id));
             }
 
-            return GetByIdAsync<TEntity>(id, null, asNoTracking, cancellationToken);
+            return GetByIdAsync<TEntity>(id.Value, null, asNoTracking, cancellationToken);
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the entity if found; otherwise, null.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the provided primary key value is null.</exception>
-        public Task<TEntity> GetByIdAsync<TEntity>(Guid id,
+        public Task<TEntity> GetByIdAsync<TEntity>(Guid? id,
                                        Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
                                        CancellationToken cancellationToken = default)
                        where TEntity : BaseEntity
@@ -71,7 +71,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 throw new ArgumentNullException(nameof(id));
             }
 
-            return GetByIdAsync(id, includes, false, cancellationToken);
+            return GetByIdAsync(id.Value, includes, false, cancellationToken);
         }
 
         // <summary>
@@ -85,7 +85,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <returns>A task that represents the asynchronous operation. The task result contains the entity if found; otherwise, null.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the provided primary key value is null.</exception>
 
-        public async Task<TEntity> GetByIdAsync<TEntity>(Guid id,
+        public async Task<TEntity> GetByIdAsync<TEntity>(Guid? id,
                                              Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
                                              bool asNoTracking = false,
                                              CancellationToken cancellationToken = default)
@@ -123,7 +123,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <returns>A task that represents the asynchronous operation. The task result contains the projected entity if found; otherwise, null.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the provided primary key value or projection expression is null.</exception>
 
-        public async Task<TProjectedType> GetByIdAsync<TEntity, TProjectedType>(Guid id,
+        public async Task<TProjectedType> GetByIdAsync<TEntity, TProjectedType>(Guid? id,
                                                                           Expression<Func<TEntity, TProjectedType>> selectExpression,
                                                                           CancellationToken cancellationToken = default)
                                           where TEntity : BaseEntity

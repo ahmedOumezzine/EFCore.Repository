@@ -83,27 +83,27 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
          where TEntity : BaseEntity
          where TProjectedType : class;
 
-        Task<TEntity> GetByIdAsync<TEntity>(object id, CancellationToken cancellationToken = default)
+        Task<TEntity> GetByIdAsync<TEntity>(Guid? id, CancellationToken cancellationToken = default)
          where TEntity : BaseEntity;
 
-        Task<TEntity> GetByIdAsync<TEntity>(object id, bool asNoTracking, CancellationToken cancellationToken = default)
+        Task<TEntity> GetByIdAsync<TEntity>(Guid? id, bool asNoTracking, CancellationToken cancellationToken = default)
            where TEntity : BaseEntity;
 
         Task<TEntity> GetByIdAsync<TEntity>(
-          object id,
+          Guid? id,
           Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
           CancellationToken cancellationToken = default)
           where TEntity : BaseEntity;
 
         Task<TEntity> GetByIdAsync<TEntity>(
-            object id,
+            Guid? id,
             Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
             bool asNoTracking,
             CancellationToken cancellationToken = default)
             where TEntity : BaseEntity;
 
         Task<TProjectedType> GetByIdAsync<TEntity, TProjectedType>(
-           object id,
+           Guid? id,
            Expression<Func<TEntity, TProjectedType>> selectExpression,
            CancellationToken cancellationToken = default)
            where TEntity : BaseEntity;
@@ -157,7 +157,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
         Task<bool> ExistsAsync<TEntity>(Expression<Func<TEntity, bool>> condition, CancellationToken cancellationToken = default)
           where TEntity : BaseEntity;
 
-        Task<bool> ExistsByIdAsync<TEntity>(object id, CancellationToken cancellationToken = default)
+        Task<bool> ExistsByIdAsync<TEntity>(Guid id, CancellationToken cancellationToken = default)
           where TEntity : BaseEntity;
 
         Task<int> GetCountAsync<TEntity>(CancellationToken cancellationToken = default)

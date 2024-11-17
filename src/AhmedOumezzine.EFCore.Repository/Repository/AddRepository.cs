@@ -32,7 +32,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <param name="cancellationToken">Optional. The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="entity"/> parameter is null.</exception>
-
         public async Task AddAsync<TEntity>(TEntity entity,
                                            CancellationToken cancellationToken = default)
                           where TEntity : BaseEntity
