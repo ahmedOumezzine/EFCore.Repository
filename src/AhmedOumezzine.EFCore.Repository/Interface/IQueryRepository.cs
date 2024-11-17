@@ -157,7 +157,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
         Task<bool> ExistsAsync<TEntity>(Expression<Func<TEntity, bool>> condition, CancellationToken cancellationToken = default)
           where TEntity : BaseEntity;
 
-        Task<bool> ExistsByIdAsync<TEntity>(Guid id, CancellationToken cancellationToken = default)
+        Task<bool> ExistsByIdAsync<TEntity>(Guid? id, CancellationToken cancellationToken = default)
           where TEntity : BaseEntity;
 
         Task<int> GetCountAsync<TEntity>(CancellationToken cancellationToken = default)
