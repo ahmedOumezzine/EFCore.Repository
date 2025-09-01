@@ -20,8 +20,126 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
- 
 
+        #region GetByIdAsync - Missing Overload
+
+        /// <summary>
+        /// Retrieves an entity by its primary key with optional includes.
+        /// </summary>
+        public async Task<TEntity> GetByIdAsync<TEntity>(
+            Guid? id,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
+            CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
+        {
+            if (id == null)
+                throw new ArgumentNullException(nameof(id));
+
+            var query = _dbContext.Set<TEntity>().Where(e => e.Id == id && !e.IsDeleted);
+
+            if (includes != null)
+            {
+                query = includes(query);
+            }
+
+            return await query.FirstOrDefaultAsync(cancellationToken);
+        }
+
+        #endregion
+
+        #region Autres surcharges de GetByIdAsync (existantes)
+
+        /// <summary>
+        /// Retrieves an entity by its primary key.
+        /// </summary>
+        public async Task<TEntity> GetByIdAsync<TEntity>(
+            Guid? id,
+            CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
+        {
+            if (id == null)
+                throw new ArgumentNullException(nameof(id));
+
+            var query = _dbContext.Set<TEntity>().Where(e => e.Id == id && !e.IsDeleted);
+
+          
+
+            return await query.FirstOrDefaultAsync(cancellationToken);
+        }
+        /// <summary>
+        /// Retrieves an entity by its primary key with optional tracking.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type.</typeparam>
+        /// <param name="id">The primary key value.</param>
+        /// <param name="asNoTracking">If true, the entity will not be tracked.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>The entity if found; otherwise, null.</returns>
+        public async Task<TEntity> GetByIdAsync<TEntity>(
+            Guid? id,
+            bool asNoTracking,
+            CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
+        {
+            if (id == null)
+                throw new ArgumentNullException(nameof(id));
+
+            var query = _dbContext.Set<TEntity>().Where(e => e.Id == id && !e.IsDeleted);
+
+            if (asNoTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            return await query.FirstOrDefaultAsync(cancellationToken);
+        }
+        /// <summary>
+        /// Retrieves an entity by its primary key with includes and optional tracking.
+        /// </summary>
+        public async Task<TEntity> GetByIdAsync<TEntity>(
+            Guid? id,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
+            bool asNoTracking,
+            CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
+        {
+            if (id == null)
+                throw new ArgumentNullException(nameof(id));
+
+            var query = _dbContext.Set<TEntity>().Where(e => e.Id == id && !e.IsDeleted);
+
+            if (includes != null)
+            {
+                query = includes(query);
+            }
+
+            if (asNoTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            return await query.FirstOrDefaultAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Retrieves a projected entity by its primary key.
+        /// </summary>
+        public async Task<TProjectedType> GetByIdAsync<TEntity, TProjectedType>(
+            Guid? id,
+            Expression<Func<TEntity, TProjectedType>> selectExpression,
+            CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
+            where TProjectedType : class
+        {
+            if (id == null) throw new ArgumentNullException(nameof(id));
+            if (selectExpression == null) throw new ArgumentNullException(nameof(selectExpression));
+
+            return await _dbContext.Set<TEntity>()
+                .Where(e => e.Id == id && !e.IsDeleted)
+                .Select(selectExpression)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        #endregion
         #region GetByIdAsync (Main Overload)
 
         /// <summary>

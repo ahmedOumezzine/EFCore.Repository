@@ -13,57 +13,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
-
-        #region GetByIdAsync - Projection
-
-        /// <summary>
-        /// Retrieves a projected entity by its primary key.
-        /// </summary>
-        public async Task<TProjectedType> GetByIdAsync<TEntity, TProjectedType>(
-            Guid? id,
-            Expression<Func<TEntity, TProjectedType>> selectExpression,
-            CancellationToken cancellationToken = default)
-            where TEntity : BaseEntity
-            where TProjectedType : class
-        {
-            if (id == null) throw new ArgumentNullException(nameof(id));
-            if (selectExpression == null) throw new ArgumentNullException(nameof(selectExpression));
-
-            var entity = await _dbContext.Set<TEntity>()
-                .Where(e => e.Id == id && !e.IsDeleted)
-                .Select(selectExpression)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            return entity;
-        }
-
-        #endregion
-
-        #region GetAsync - Projection
-
-        /// <summary>
-        /// Retrieves a projected entity based on a condition.
-        /// </summary>
-        public async Task<TProjectedType> GetAsync<TEntity, TProjectedType>(
-            Expression<Func<TEntity, bool>> condition,
-            Expression<Func<TEntity, TProjectedType>> selectExpression,
-            CancellationToken cancellationToken = default)
-            where TEntity : BaseEntity
-            where TProjectedType : class
-        {
-            if (condition == null) throw new ArgumentNullException(nameof(condition));
-            if (selectExpression == null) throw new ArgumentNullException(nameof(selectExpression));
-
-            var entity = await _dbContext.Set<TEntity>()
-                .Where(e => !e.IsDeleted)
-                .Where(condition)
-                .Select(selectExpression)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            return entity;
-        }
-
-        #endregion
+ 
         #region Add (To Context - No Save)
 
         /// <summary>
@@ -228,9 +178,8 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             {
                 return false;
             }
-        }
-
+        } 
         #endregion
-         
+
     }
 }

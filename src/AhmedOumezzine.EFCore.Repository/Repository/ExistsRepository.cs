@@ -17,30 +17,42 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
-       
-        #region Exists (With Condition)
+
+        #region ExistsByIdAsync (Correct Signature)
 
         /// <summary>
-        /// Checks if any entity of the specified type exists in the database.
+        /// Checks if an entity of the specified type with the given Guid ID exists and is not soft-deleted.
         /// </summary>
-        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>True if at least one entity exists; otherwise, false.</returns>
-        public async Task<bool> ExistsAsync<TEntity>(CancellationToken cancellationToken = default)
+        public async Task<bool> ExistsByIdAsync<TEntity>(
+            Guid? id,
+            CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
-            return await _dbContext.Set<TEntity>().AnyAsync(e => !e.IsDeleted, cancellationToken).ConfigureAwait(false);
+            if (id == null)
+                return false;
+
+            return await _dbContext.Set<TEntity>()
+                .AnyAsync(e => e.Id == id && !e.IsDeleted, cancellationToken);
+        }
+
+        #endregion
+
+        #region Other Exists Methods
+
+        /// <summary>
+        /// Checks if any entity of the specified type exists.
+        /// </summary>
+        public async Task<bool> ExistsAsync<TEntity>(
+            CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
+        {
+            return await _dbContext.Set<TEntity>()
+                .AnyAsync(e => !e.IsDeleted, cancellationToken);
         }
 
         /// <summary>
-        /// Checks if any entity of the specified type that matches the given condition exists in the database.
-        /// Automatically excludes soft-deleted entities.
+        /// Checks if any entity matching the condition exists.
         /// </summary>
-        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
-        /// <param name="condition">The condition to match (e.g., x => x.Name == "John").</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>True if an entity matching the condition exists; otherwise, false.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="condition"/> is null.</exception>
         public async Task<bool> ExistsAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
             CancellationToken cancellationToken = default)
@@ -49,11 +61,13 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             if (condition == null)
                 throw new ArgumentNullException(nameof(condition));
 
-            var query = _dbContext.Set<TEntity>().Where(e => !e.IsDeleted);
-            return await query.AnyAsync(condition, cancellationToken).ConfigureAwait(false);
+            return await _dbContext.Set<TEntity>()
+                .Where(e => !e.IsDeleted)
+                .AnyAsync(condition, cancellationToken);
         }
 
         #endregion
+         
 
         #region Exists By Primary Key
 
