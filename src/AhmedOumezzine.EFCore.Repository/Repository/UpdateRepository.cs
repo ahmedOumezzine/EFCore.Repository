@@ -3,135 +3,274 @@ using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata;
-using System.Data;
+using Microsoft.EntityFrameworkCore.Query;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AhmedOumezzine.EFCore.Repository.Repository
 {
+    /// <summary>
+    /// Partial implementation of the generic repository for updating entities.
+    /// Provides methods to update single or multiple entities, partial updates, and safe operations.
+    /// </summary>
+    /// <typeparam name="TDbContext">The type of the database context.</typeparam>
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
-    {
+    {  
+
+        #region Update (Sync)
+
         /// <summary>
         /// Updates the specified entity in the database.
+        /// If the entity is already tracked, marks it as modified.
+        /// If not tracked, attaches it and marks it as modified (requires valid primary key).
         /// </summary>
-        /// <typeparam name="TEntity">The type of entity to update.</typeparam>
-        /// <param name="entity">The entity to update.</param>
-        /// <exception cref="ArgumentNullException">Thrown when the entity is null.</exception>
-        /// <exception cref="InvalidOperationException">Thrown when the entity type is not part of the DbContext model or when the primary key value of the entity is not valid.</exception>
+        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
+        /// <param name="entity">The entity to update. Cannot be null.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="entity"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the entity has an invalid or default primary key value.</exception>
         public void Update<TEntity>(TEntity entity) where TEntity : BaseEntity
         {
-            CheckEntityIsNull<TEntity>(entity);
+            CheckEntityIsNull(entity);
 
-            EntityEntry<TEntity> trackedEntity = _dbContext.ChangeTracker
-                                                           .Entries<TEntity>()
-                                                           .FirstOrDefault(x => x.Entity == entity);
+            var entry = _dbContext.ChangeTracker.Entries<TEntity>()
+                .FirstOrDefault(e => e.Entity == entity);
 
-            if (trackedEntity == null)
+            if (entry != null)
             {
-                IEntityType entityType = _dbContext.Model.FindEntityType(typeof(TEntity));
-
-                if (entityType == null)
+                entry.State = EntityState.Modified;
+            }
+            else
+            {
+                if (!HasValidKey(entity))
                 {
-                    throw new InvalidOperationException($"{typeof(TEntity).Name} is not part of EF Core DbContext model");
-                }
-
-                string primaryKeyName = entityType.FindPrimaryKey().Properties.Select(p => p.Name).FirstOrDefault();
-
-                if (primaryKeyName != null)
-                {
-                    Type primaryKeyType = entityType.FindPrimaryKey().Properties.Select(p => p.ClrType).FirstOrDefault();
-
-                    object primaryKeyDefaultValue = primaryKeyType.IsValueType ? Activator.CreateInstance(primaryKeyType) : null;
-
-                    object primaryValue = entity.GetType().GetProperty(primaryKeyName).GetValue(entity, null);
-
-                    if (primaryKeyDefaultValue.Equals(primaryValue))
-                    {
-                        throw new InvalidOperationException("The primary key value of the entity to be updated is not valid.");
-                    }
+                    throw new InvalidOperationException(
+                        "Cannot update an entity with an invalid or default primary key value.");
                 }
 
                 SetLastModifiedOnUtc(entity);
-                _dbContext.Set<TEntity>().Update(entity);
+                _dbContext.Entry(entity).State = EntityState.Modified;
             }
         }
 
         /// <summary>
         /// Updates a collection of entities in the database.
+        /// Each entity is processed individually to ensure proper state management.
         /// </summary>
-        /// <typeparam name="TEntity">The type of entities to update.</typeparam>
-        /// <param name="entities">The collection of entities to update.</param>
-        /// <exception cref="ArgumentNullException">Thrown when the collection of entities is null.</exception>
+        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
+        /// <param name="entities">The collection of entities to update. Cannot be null.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="entities"/> is null.</exception>
         public void Update<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity
         {
-            CheckEntitiesIsNull<TEntity>(entities);
-            SetLastModifiedOnUtc(entities);
-            _dbContext.Set<TEntity>().UpdateRange(entities);
+            CheckEntitiesIsNull(entities);
+
+            foreach (var entity in entities)
+            {
+                Update(entity);
+            }
         }
 
+        #endregion
+
+        #region Update (Async)
+
         /// <summary>
-        /// Asynchronously updates the specified entity in the database.
+        /// Asynchronously updates the specified entity and saves changes.
         /// </summary>
-        /// <typeparam name="TEntity">The type of entity to update.</typeparam>
-        /// <param name="entity">The entity to update.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result represents the number of entities updated in the database.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when the entity is null.</exception>
-        /// <exception cref="InvalidOperationException">Thrown when the entity type is not part of the DbContext model or when the primary key value of the entity is not valid.</exception>
-        public async Task<int> UpdateAsync<TEntity>(TEntity entity,
-                                                    CancellationToken cancellationToken = default) where TEntity : BaseEntity
+        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
+        /// <param name="entity">The entity to update. Cannot be null.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>The number of affected rows.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="entity"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the entity has an invalid or default primary key value.</exception>
+        public async Task<int> UpdateAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
         {
-            CheckEntityIsNull<TEntity>(entity);
+            CheckEntityIsNull(entity);
 
-            EntityEntry<TEntity> trackedEntity = _dbContext.ChangeTracker.Entries<TEntity>().FirstOrDefault(x => x.Entity == entity);
+            var entry = _dbContext.ChangeTracker.Entries<TEntity>()
+                .FirstOrDefault(e => e.Entity == entity);
 
-            if (trackedEntity == null)
+            if (entry != null)
             {
-                IEntityType entityType = _dbContext.Model.FindEntityType(typeof(TEntity));
-
-                if (entityType == null)
+                entry.State = EntityState.Modified;
+            }
+            else
+            {
+                if (!HasValidKey(entity))
                 {
-                    throw new InvalidOperationException($"{typeof(TEntity).Name} is not part of EF Core DbContext model");
+                    throw new InvalidOperationException(
+                        "Cannot update an entity with an invalid or default primary key value.");
                 }
 
-                string primaryKeyName = entityType.FindPrimaryKey().Properties.Select(p => p.Name).FirstOrDefault();
-
-                if (primaryKeyName != null)
-                {
-                    Type primaryKeyType = entityType.FindPrimaryKey().Properties.Select(p => p.ClrType).FirstOrDefault();
-
-                    object primaryKeyDefaultValue = primaryKeyType.IsValueType ? Activator.CreateInstance(primaryKeyType) : null;
-
-                    object primaryValue = entity.GetType().GetProperty(primaryKeyName).GetValue(entity, null);
-
-                    if (primaryKeyDefaultValue.Equals(primaryValue))
-                    {
-                        throw new InvalidOperationException("The primary key value of the entity to be updated is not valid.");
-                    }
-                }
                 SetLastModifiedOnUtc(entity);
-                _dbContext.Set<TEntity>().Update(entity);
+                _dbContext.Entry(entity).State = EntityState.Modified;
             }
 
-            int count = await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            return count;
+            return await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Asynchronously updates a collection of entities in the database.
+        /// Asynchronously updates a collection of entities and saves changes.
         /// </summary>
-        /// <typeparam name="T">The type of entities to update.</typeparam>
-        /// <param name="entities">The collection of entities to update.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result represents the number of entities updated in the database.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when the collection of entities is null.</exception>
-        public async Task<int> UpdateAsync<TEntity>(IEnumerable<TEntity> entities,
-                                             CancellationToken cancellationToken = default) where TEntity : BaseEntity
+        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
+        /// <param name="entities">The collection of entities to update. Cannot be null.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>The number of affected rows.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="entities"/> is null.</exception>
+        public async Task<int> UpdateAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
         {
-            CheckEntitiesIsNull<TEntity>(entities);
-            SetLastModifiedOnUtc(entities);
-            _dbContext.Set<TEntity>().UpdateRange(entities);
-            int count = await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            return count;
+            CheckEntitiesIsNull(entities);
+
+            foreach (var entity in entities)
+            {
+                Update(entity);
+            }
+
+            return await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
+
+        #endregion
+
+        #region Update Only (Partial Update)
+
+        /// <summary>
+        /// Updates only the specified properties of the entity.
+        /// Useful for PATCH operations in APIs to avoid over-posting.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
+        /// <param name="entity">The entity with updated values. Must have a valid primary key.</param>
+        /// <param name="properties">The names of properties to update (e.g., "Name", "Email").</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>The number of affected rows.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="entity"/> or <paramref name="properties"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the entity has an invalid primary key.</exception>
+        public async Task<int> UpdateOnlyAsync<TEntity>(
+            TEntity entity,
+            string[] properties,
+            CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
+        {
+            CheckEntityIsNull(entity);
+            if (properties == null) throw new ArgumentNullException(nameof(properties));
+
+            if (!HasValidKey(entity))
+            {
+                throw new InvalidOperationException("Entity must have a valid primary key to perform partial update.");
+            }
+
+            var entry = _dbContext.Entry(entity);
+            entry.State = EntityState.Unchanged; // Start with unchanged
+
+            foreach (var prop in properties)
+            {
+                var propertyEntry = entry.Property(prop);
+                if (propertyEntry != null && !propertyEntry.Metadata.IsKey())
+                {
+                    propertyEntry.IsModified = true;
+                }
+            }
+
+            SetLastModifiedOnUtc(entity);
+            return await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        #endregion
+
+        #region Conditional Update
+
+        /// <summary>
+        /// Updates the entity only if it exists in the database.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
+        /// <param name="entity">The entity to update. Cannot be null.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>True if the entity was found and updated; false otherwise.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="entity"/> is null.</exception>
+        public async Task<bool> UpdateIfExistsAsync<TEntity>(
+            TEntity entity,
+            CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
+        {
+            CheckEntityIsNull(entity);
+
+            if (!HasValidKey(entity)) return false;
+
+            var key = GetKeyValue(entity);
+            var exists = await _dbContext.Set<TEntity>().AnyAsync(e => GetKeyValue(e).Equals(key), cancellationToken);
+
+            if (!exists) return false;
+
+            Update(entity);
+            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            return true;
+        }
+
+        #endregion
+
+        #region Safe Update
+
+        /// <summary>
+        /// Attempts to update the entity and returns success status without throwing exceptions.
+        /// Useful for batch operations where individual failures should not stop the process.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
+        /// <param name="entity">The entity to update.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>True if update succeeded; false if an exception occurred.</returns>
+        public async Task<bool> TryUpdateAsync<TEntity>(
+            TEntity entity,
+            CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
+        {
+            try
+            {
+                await UpdateAsync(entity, cancellationToken).ConfigureAwait(false);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region Bulk Update (EF Core 7+)
+
+        /// <summary>
+        /// Updates entities matching the predicate without loading them into memory.
+        /// Uses EF Core 7+ ExecuteUpdate feature for high performance.
+        /// Note: Does not trigger change tracking or events.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
+        /// <param name="predicate">The condition to match entities (e.g., x => x.Status == "Pending").</param>
+        /// <param name="updateAction">The update operation (e.g., x => x.SetProperty(u => u.Status, "Processed")).</param>
+        /// <returns>The number of affected rows.</returns>
+        public async Task<int> UpdateFromQueryAsync<TEntity>(
+            Expression<Func<TEntity, bool>> predicate,
+            Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> updateAction)
+            where TEntity : BaseEntity
+        {
+            // Apply the user update
+            var result = await _dbContext.Set<TEntity>()
+                .Where(predicate)
+                .ExecuteUpdateAsync(updateAction);
+
+            // Also update LastModifiedOnUtc
+            await _dbContext.Set<TEntity>()
+                .Where(predicate)
+                .ExecuteUpdateAsync(e => e.SetProperty(x => x.LastModifiedOnUtc, DateTime.UtcNow));
+
+            return result;
+        }
+
+        #endregion
+         
     }
 }
