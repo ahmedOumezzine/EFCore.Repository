@@ -1,11 +1,7 @@
 ﻿using AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using System;
 using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AhmedOumezzine.EFCore.Repository.Repository
 {
@@ -17,7 +13,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
-
         #region ExistsByIdAsync (Correct Signature)
 
         /// <summary>
@@ -35,7 +30,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .AnyAsync(e => e.Id == id && !e.IsDeleted, cancellationToken);
         }
 
-        #endregion
+        #endregion ExistsByIdAsync (Correct Signature)
 
         #region Other Exists Methods
 
@@ -66,8 +61,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .AnyAsync(condition, cancellationToken);
         }
 
-        #endregion
-         
+        #endregion Other Exists Methods
 
         #region Exists By Primary Key
 
@@ -109,7 +103,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await _dbContext.Set<TEntity>().AnyAsync(lambda, cancellationToken).ConfigureAwait(false);
         }
 
-        #endregion
+        #endregion Exists By Primary Key
 
         #region Exists By Composite Key (Optional)
 
@@ -133,7 +127,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return entity != null && !entity.IsDeleted;
         }
 
-        #endregion
+        #endregion Exists By Composite Key (Optional)
 
         #region Count
 
@@ -170,6 +164,24 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .CountAsync(condition, cancellationToken);
         }
 
-        #endregion
+        #endregion Count
+
+        /// <summary>
+        /// Checks if an entity is marked as deleted.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
+        /// <param name="entity">The entity to check.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>True if the entity is soft-deleted; false otherwise.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="entity"/> is null.</exception>
+        public async Task<bool> IsDeletedAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
+        {
+            CheckEntityIsNull(entity);
+
+            var key = GetKeyValue(entity);
+            return await _dbContext.Set<TEntity>()
+                .AnyAsync(e => GetKeyValue(e).Equals(key) && e.IsDeleted, cancellationToken);
+        }
     }
 }

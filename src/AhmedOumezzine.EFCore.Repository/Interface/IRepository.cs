@@ -1,14 +1,8 @@
 ﻿using AhmedOumezzine.EFCore.Repository.Entities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AhmedOumezzine.EFCore.Repository.Interface
 {
@@ -30,7 +24,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
             IsolationLevel isolationLevel = IsolationLevel.Unspecified,
             CancellationToken cancellationToken = default);
 
-        #endregion
+        #endregion Transactions
 
         #region Add (Add to context, no save)
 
@@ -56,7 +50,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
         Task AddAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity;
 
-        #endregion
+        #endregion Add (Add to context, no save)
 
         #region Add and Save (Immediate persistence)
 
@@ -80,7 +74,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
         Task AddRangeAndSaveAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity;
 
-        #endregion
+        #endregion Add and Save (Immediate persistence)
 
         #region Update
 
@@ -106,7 +100,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
         Task<int> UpdateAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity;
 
-        #endregion
+        #endregion Update
 
         #region Delete
 
@@ -132,7 +126,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
         Task<int> DeleteAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity;
 
-        #endregion
+        #endregion Delete
 
         #region Save
 
@@ -143,7 +137,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
         /// <returns>The number of affected rows.</returns>
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
-        #endregion
+        #endregion Save
 
         #region Raw SQL Commands (Modern & Safe)
 
@@ -179,7 +173,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
             IEnumerable<object> parameters,
             CancellationToken cancellationToken = default);
 
-        #endregion
+        #endregion Raw SQL Commands (Modern & Safe)
 
         #region Scalar & Single SQL Results
 
@@ -222,7 +216,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
             IEnumerable<object> parameters = null,
             CancellationToken cancellationToken = default);
 
-        #endregion
+        #endregion Scalar & Single SQL Results
 
         #region Bulk Operations (EF Core 7+)
 
@@ -247,7 +241,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
         Task<int> DeleteFromQueryAsync<TEntity>(Expression<Func<TEntity, bool>> predicate)
             where TEntity : BaseEntity;
 
-        #endregion
+        #endregion Bulk Operations (EF Core 7+)
 
         #region Change Tracker
 
@@ -256,6 +250,6 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
         /// </summary>
         void ClearChangeTracker();
 
-        #endregion
+        #endregion Change Tracker
     }
 }

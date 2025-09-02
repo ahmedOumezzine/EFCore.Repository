@@ -4,12 +4,7 @@ using AhmedOumezzine.EFCore.Repository.Interface;
 using AhmedOumezzine.EFCore.Repository.Specification;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AhmedOumezzine.EFCore.Repository.Repository
 {
@@ -22,7 +17,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
-       
         #region GetListAsync - Base Overloads (No Filter)
 
         /// <summary>
@@ -74,7 +68,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await query.ToListAsync(cancellationToken);
         }
 
-        #endregion
+        #endregion GetListAsync - Base Overloads (No Filter)
 
         #region GetListAsync - With Condition
 
@@ -125,7 +119,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await query.ToListAsync(cancellationToken);
         }
 
-        #endregion
+        #endregion GetListAsync - With Condition
 
         #region GetListAsync - With Specification
 
@@ -162,7 +156,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await query.ToListAsync(cancellationToken);
         }
 
-        #endregion
+        #endregion GetListAsync - With Specification
 
         #region GetListAsync - Projection (Select)
 
@@ -228,7 +222,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await query.Select(selectExpression).ToListAsync(cancellationToken);
         }
 
-        #endregion
+        #endregion GetListAsync - Projection (Select)
 
         #region GetListAsync - Pagination
 
@@ -273,7 +267,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .ToPaginatedListAsync(specification.PageIndex, specification.PageSize, cancellationToken);
         }
 
-        #endregion
+        #endregion GetListAsync - Pagination
 
         #region GetActiveListAsync (Semantic Alias)
 
@@ -287,7 +281,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return GetListAsync<TEntity>(cancellationToken);
         }
 
-        #endregion
+        #endregion GetActiveListAsync (Semantic Alias)
 
         #region GetDeletedListAsync (Audit / Restore)
 
@@ -312,7 +306,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await query.ToListAsync(cancellationToken);
         }
 
-        #endregion
+        #endregion GetDeletedListAsync (Audit / Restore)
 
         #region TryGetListAsync (Safe Access)
 
@@ -339,7 +333,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             }
         }
 
-        #endregion
+        #endregion TryGetListAsync (Safe Access)
 
         #region GetDistinctByAsync (Dropdowns / Filters)
 
@@ -367,7 +361,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .ToListAsync(cancellationToken);
         }
 
-        #endregion
+        #endregion GetDistinctByAsync (Dropdowns / Filters)
 
         #region ExistsAnyAndListAsync (Optimized Load)
 
@@ -389,6 +383,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return (items.Any(), items);
         }
 
-        #endregion
+        #endregion ExistsAnyAndListAsync (Optimized Load)
     }
 }

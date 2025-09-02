@@ -2,12 +2,8 @@
 using AhmedOumezzine.EFCore.Repository.Extensions;
 using AhmedOumezzine.EFCore.Repository.Specification;
 using Microsoft.EntityFrameworkCore.Query;
-using System;
-using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AhmedOumezzine.EFCore.Repository.Interface
 {
@@ -25,7 +21,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
         /// </summary>
         IQueryable<TEntity> GetQueryable<TEntity>() where TEntity : BaseEntity;
 
-        #endregion
+        #endregion Queryable
 
         #region List - GetAll & Filtered
 
@@ -85,7 +81,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
             CancellationToken cancellationToken = default)
             where TEntity : BaseEntity;
 
-        #endregion
+        #endregion List - GetAll & Filtered
 
         #region List - With Specification
 
@@ -106,7 +102,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
             CancellationToken cancellationToken = default)
             where TEntity : BaseEntity;
 
-        #endregion
+        #endregion List - With Specification
 
         #region List - Projection
 
@@ -139,7 +135,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
             where TEntity : BaseEntity
             where TProjectedType : class;
 
-        #endregion
+        #endregion List - Projection
 
         #region List - Pagination
 
@@ -161,7 +157,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
             where TEntity : BaseEntity
             where TProjectedType : class;
 
-        #endregion
+        #endregion List - Pagination
 
         #region GetById
 
@@ -206,7 +202,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
             where TEntity : BaseEntity
             where TProjectedType : class;
 
-        #endregion
+        #endregion GetById
 
         #region Get (First or Default)
 
@@ -283,7 +279,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
             where TEntity : BaseEntity
             where TProjectedType : class;
 
-        #endregion
+        #endregion Get (First or Default)
 
         #region Exists
 
@@ -307,7 +303,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
         Task<bool> ExistsByIdAsync<TEntity>(Guid? id, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity;
 
-        #endregion
+        #endregion Exists
 
         #region Count
 
@@ -355,7 +351,7 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
             CancellationToken cancellationToken = default)
             where TEntity : BaseEntity;
 
-        #endregion
+        #endregion Count
 
         #region Raw SQL Queries
 
@@ -393,6 +389,6 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
             CancellationToken cancellationToken = default)
             where T : class;
 
-        #endregion
+        #endregion Raw SQL Queries
     }
 }

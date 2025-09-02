@@ -13,7 +13,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
- 
         #region Add (To Context - No Save)
 
         /// <summary>
@@ -74,7 +73,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             await _dbContext.Set<TEntity>().AddRangeAsync(entities, cancellationToken).ConfigureAwait(false);
         }
 
-        #endregion
+        #endregion Add (To Context - No Save)
 
         #region Add and Save (Immediate Persistence)
 
@@ -124,7 +123,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        #endregion
+        #endregion Add and Save (Immediate Persistence)
 
         #region Conditional Add
 
@@ -178,8 +177,8 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             {
                 return false;
             }
-        } 
-        #endregion
+        }
 
+        #endregion Conditional Add
     }
 }

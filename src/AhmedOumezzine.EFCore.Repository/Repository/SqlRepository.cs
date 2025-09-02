@@ -1,11 +1,7 @@
 ﻿using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AhmedOumezzine.EFCore.Repository.Repository
 {
@@ -17,8 +13,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
-      
-
         #region ExecuteSqlCommandAsync - Raw SQL Commands
 
         /// <summary>
@@ -74,7 +68,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return _dbContext.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
         }
 
-        #endregion
+        #endregion ExecuteSqlCommandAsync - Raw SQL Commands
 
         #region GetFromRawSqlAsync - Raw SQL Queries (SELECT)
 
@@ -162,7 +156,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await query.ToListAsync(cancellationToken);
         }
 
-        #endregion
+        #endregion GetFromRawSqlAsync - Raw SQL Queries (SELECT)
 
         #region QueryFromSqlAsync (Semantic Alias)
 
@@ -178,7 +172,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return GetFromRawSqlAsync<T>(sql, parameters);
         }
 
-        #endregion
+        #endregion QueryFromSqlAsync (Semantic Alias)
 
         #region ExecuteScalarAsync (Single Value)
 
@@ -225,7 +219,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             };
         }
 
-        #endregion
+        #endregion ExecuteScalarAsync (Single Value)
 
         #region GetSingleFromSqlAsync (First or Default)
 
@@ -247,7 +241,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return list.FirstOrDefault();
         }
 
-        #endregion
+        #endregion GetSingleFromSqlAsync (First or Default)
 
         #region ExistsBySqlAsync (Existence Check)
 
@@ -267,7 +261,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return count > 0;
         }
 
-        #endregion
+        #endregion ExistsBySqlAsync (Existence Check)
 
         #region ExecuteStoredProcedureAsync
 
@@ -295,7 +289,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 : _dbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
         }
 
-        #endregion
+        #endregion ExecuteStoredProcedureAsync
 
         #region ExecuteInTransactionAsync
 
@@ -325,6 +319,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             }
         }
 
-        #endregion
+        #endregion ExecuteInTransactionAsync
     }
 }

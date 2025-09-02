@@ -1,12 +1,7 @@
 ﻿using AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AhmedOumezzine.EFCore.Repository.Repository
 {
@@ -18,8 +13,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
-    
-
         #region Soft Delete (Mark as Deleted)
 
         /// <summary>
@@ -89,7 +82,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        #endregion
+        #endregion Soft Delete (Mark as Deleted)
 
         #region Hard Delete (Physical Removal)
 
@@ -126,7 +119,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        #endregion
+        #endregion Hard Delete (Physical Removal)
 
         #region Conditional Delete
 
@@ -152,7 +145,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return true;
         }
 
-        #endregion
+        #endregion Conditional Delete
 
         #region Safe Delete
 
@@ -178,7 +171,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             }
         }
 
-        #endregion
+        #endregion Safe Delete
 
         #region Bulk Delete (EF Core 7+)
 
@@ -198,7 +191,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .ExecuteDeleteAsync();
         }
 
-        #endregion
+        #endregion Bulk Delete (EF Core 7+)
 
         #region Restore (Undelete)
 
@@ -224,7 +217,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        #endregion
+        #endregion Restore (Undelete)
 
         #region Delete by Condition (Soft)
 
@@ -256,43 +249,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        #endregion
-
-        #region Check & Count
-
-        /// <summary>
-        /// Checks if an entity is marked as deleted.
-        /// </summary>
-        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
-        /// <param name="entity">The entity to check.</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>True if the entity is soft-deleted; false otherwise.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="entity"/> is null.</exception>
-        public async Task<bool> IsDeletedAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
-            where TEntity : BaseEntity
-        {
-            CheckEntityIsNull(entity);
-
-            var key = GetKeyValue(entity);
-            return await _dbContext.Set<TEntity>()
-                .AnyAsync(e => GetKeyValue(e).Equals(key) && e.IsDeleted, cancellationToken);
-        }
-
-        /// <summary>
-        /// Counts the number of soft-deleted entities.
-        /// </summary>
-        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
-        /// <returns>The count of soft-deleted entities.</returns>
-        public async Task<int> CountSoftDeletedAsync<TEntity>() where TEntity : BaseEntity
-        {
-            return await _dbContext.Set<TEntity>()
-                .CountAsync(e => e.IsDeleted);
-        }
-
-        #endregion
-
-      
-
-        
+        #endregion Delete by Condition (Soft)
     }
 }

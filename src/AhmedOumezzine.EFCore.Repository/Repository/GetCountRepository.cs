@@ -1,13 +1,8 @@
 ﻿using AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AhmedOumezzine.EFCore.Repository.Repository
 {
@@ -19,8 +14,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
-  
-
         #region GetCountAsync (int)
 
         /// <summary>
@@ -89,7 +82,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await query.CountAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        #endregion
+        #endregion GetCountAsync (int)
 
         #region GetLongCountAsync (long)
 
@@ -160,7 +153,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await query.LongCountAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        #endregion
+        #endregion GetLongCountAsync (long)
 
         #region HasAnyAsync (Existence Checks)
 
@@ -198,7 +191,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .AnyAsync(condition, cancellationToken);
         }
 
-        #endregion
+        #endregion HasAnyAsync (Existence Checks)
 
         #region CountDeletedAsync (Soft-Delete Audit)
 
@@ -216,7 +209,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .CountAsync(e => e.IsDeleted, cancellationToken);
         }
 
-        #endregion
+        #endregion CountDeletedAsync (Soft-Delete Audit)
 
         #region CountByStatusAsync (Dashboard / Stats)
 
@@ -239,7 +232,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .ToDictionaryAsync(x => x.Status, x => x.Count, cancellationToken);
         }
 
-        #endregion
+        #endregion CountByStatusAsync (Dashboard / Stats)
 
         #region CountByDateRangeAsync (Analytics)
 
@@ -264,6 +257,17 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                            cancellationToken);
         }
 
-        #endregion
+        /// <summary>
+        /// Counts the number of soft-deleted entities.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
+        /// <returns>The count of soft-deleted entities.</returns>
+        public async Task<int> CountSoftDeletedAsync<TEntity>() where TEntity : BaseEntity
+        {
+            return await _dbContext.Set<TEntity>()
+                .CountAsync(e => e.IsDeleted);
+        }
+
+        #endregion CountByDateRangeAsync (Analytics)
     }
 }

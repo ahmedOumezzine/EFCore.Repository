@@ -3,10 +3,7 @@ using AhmedOumezzine.EFCore.Repository.Interface;
 using AhmedOumezzine.EFCore.Repository.Specification;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
-using System;
 using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AhmedOumezzine.EFCore.Repository.Repository
 {
@@ -19,7 +16,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
-       
         #region GetAsync - By Condition
 
         /// <summary>
@@ -82,7 +78,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await query.FirstOrDefaultAsync(cancellationToken);
         }
 
-        #endregion
+        #endregion GetAsync - By Condition
 
         #region GetAsync - By Specification
 
@@ -119,7 +115,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await query.FirstOrDefaultAsync(cancellationToken);
         }
 
-        #endregion
+        #endregion GetAsync - By Specification
 
         #region GetAsync - Projection (Select)
 
@@ -166,7 +162,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await query.Select(selectExpression).FirstOrDefaultAsync(cancellationToken);
         }
 
-        #endregion
+        #endregion GetAsync - Projection (Select)
 
         #region TryGetAsync (Safe Access)
 
@@ -190,7 +186,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             }
         }
 
-        #endregion
+        #endregion TryGetAsync (Safe Access)
 
         #region GetAsyncOrDefault (Semantic Clarity)
 
@@ -206,7 +202,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return GetAsync(condition, cancellationToken);
         }
 
-        #endregion
+        #endregion GetAsyncOrDefault (Semantic Clarity)
 
         #region FindAsync (Semantic Alias)
 
@@ -221,7 +217,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return GetAsync(condition, cancellationToken);
         }
 
-        #endregion
+        #endregion FindAsync (Semantic Alias)
 
         #region GetFirstOrThrowAsync (Fail Fast)
 
@@ -241,7 +237,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return entity;
         }
 
-        #endregion
+        #endregion GetFirstOrThrowAsync (Fail Fast)
 
         #region ExistsAndFetchAsync (Optimized Load)
 
@@ -258,7 +254,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return (entity != null, entity);
         }
 
-        #endregion
+        #endregion ExistsAndFetchAsync (Optimized Load)
 
         #region GetOnlyAsync (Single Property)
 
@@ -287,6 +283,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
-        #endregion
+        #endregion GetOnlyAsync (Single Property)
     }
 }

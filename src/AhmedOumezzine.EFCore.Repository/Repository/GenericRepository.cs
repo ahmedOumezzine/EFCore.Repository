@@ -14,8 +14,8 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// The database context used for data operations.
         /// </summary>
-        private readonly TDbContext _dbContext; 
- 
+        private readonly TDbContext _dbContext;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository{TDbContext}"/> class.
         /// </summary>
@@ -24,7 +24,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
-
 
         public async Task<IDbContextTransaction> BeginTransactionAsync(
             IsolationLevel isolationLevel = IsolationLevel.Unspecified,
@@ -101,7 +100,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                     entity.CreatedOnUtc = DateTime.UtcNow;
             }
         }
-         
+
         private bool HasValidKey<TEntity>(TEntity entity) where TEntity : BaseEntity
         {
             var entityType = _dbContext.Model.FindEntityType(typeof(TEntity));
@@ -137,10 +136,8 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             }
         }
 
-
-
         // Méthode pour définir IsDeleted sur true et DeletedOnUtc pour une seule entité
-         
+
         private void SetDeleted<TEntity>(TEntity entity) where TEntity : BaseEntity
         {
             if (!entity.IsDeleted)
@@ -165,7 +162,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             }
         }
 
-
         /// <summary>
         /// Gets the primary key value of the entity.
         /// </summary>
@@ -176,6 +172,5 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             var key = entityType?.FindPrimaryKey().Properties.First();
             return key != null ? typeof(TEntity).GetProperty(key.Name).GetValue(entity) : null;
         }
-
     }
 }

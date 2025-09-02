@@ -1,15 +1,8 @@
 ﻿using AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AhmedOumezzine.EFCore.Repository.Repository
 {
@@ -20,8 +13,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     /// <typeparam name="TDbContext">The type of the database context.</typeparam>
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
-    {  
-
+    {
         #region Update (Sync)
 
         /// <summary>
@@ -74,7 +66,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             }
         }
 
-        #endregion
+        #endregion Update (Sync)
 
         #region Update (Async)
 
@@ -135,7 +127,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        #endregion
+        #endregion Update (Async)
 
         #region Update Only (Partial Update)
 
@@ -180,7 +172,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        #endregion
+        #endregion Update Only (Partial Update)
 
         #region Conditional Update
 
@@ -211,7 +203,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return true;
         }
 
-        #endregion
+        #endregion Conditional Update
 
         #region Safe Update
 
@@ -239,7 +231,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             }
         }
 
-        #endregion
+        #endregion Safe Update
 
         #region Bulk Update (EF Core 7+)
 
@@ -270,7 +262,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return result;
         }
 
-        #endregion
-         
+        #endregion Bulk Update (EF Core 7+)
     }
 }

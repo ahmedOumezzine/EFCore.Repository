@@ -2,12 +2,7 @@
 using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AhmedOumezzine.EFCore.Repository.Repository
 {
@@ -20,7 +15,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
-
         #region GetByIdAsync - Missing Overload
 
         /// <summary>
@@ -45,7 +39,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await query.FirstOrDefaultAsync(cancellationToken);
         }
 
-        #endregion
+        #endregion GetByIdAsync - Missing Overload
 
         #region Autres surcharges de GetByIdAsync (existantes)
 
@@ -62,10 +56,9 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
             var query = _dbContext.Set<TEntity>().Where(e => e.Id == id && !e.IsDeleted);
 
-          
-
             return await query.FirstOrDefaultAsync(cancellationToken);
         }
+
         /// <summary>
         /// Retrieves an entity by its primary key with optional tracking.
         /// </summary>
@@ -92,6 +85,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
             return await query.FirstOrDefaultAsync(cancellationToken);
         }
+
         /// <summary>
         /// Retrieves an entity by its primary key with includes and optional tracking.
         /// </summary>
@@ -139,7 +133,8 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
-        #endregion
+        #endregion Autres surcharges de GetByIdAsync (existantes)
+
         #region GetByIdAsync (Main Overload)
 
         /// <summary>
@@ -191,7 +186,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await query.FirstOrDefaultAsync(lambda, cancellationToken);
         }
 
-        #endregion
+        #endregion GetByIdAsync (Main Overload)
 
         #region GetByIdAsync (Overloads)
 
@@ -225,7 +220,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return GetByIdAsync<TEntity>(id, includes: null, asNoTracking: asNoTracking, cancellationToken: cancellationToken);
         }
 
-        #endregion
+        #endregion GetByIdAsync (Overloads)
 
         #region GetByIdsAsync (Batch Load)
 
@@ -272,7 +267,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await query.ToListAsync(cancellationToken);
         }
 
-        #endregion
+        #endregion GetByIdsAsync (Batch Load)
 
         #region GetByIdOrDefaultAsync & FindByIdAsync (Semantic Aliases)
 
@@ -294,7 +289,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return GetByIdAsync<TEntity>(id, ct);
         }
 
-        #endregion
+        #endregion GetByIdOrDefaultAsync & FindByIdAsync (Semantic Aliases)
 
         #region GetOnlyAsync (Projection of Single Property)
 
@@ -332,7 +327,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
-        #endregion
+        #endregion GetOnlyAsync (Projection of Single Property)
 
         #region TryGetByIdAsync (Safe Access)
 
@@ -356,7 +351,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             }
         }
 
-        #endregion
+        #endregion TryGetByIdAsync (Safe Access)
 
         #region Private Helpers
 
@@ -376,6 +371,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return Expression.Lambda<Func<T, bool>>(Expression.AndAlso(equals, notDeleted), param);
         }
 
-        #endregion
+        #endregion Private Helpers
     }
 }
