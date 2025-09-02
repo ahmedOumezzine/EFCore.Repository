@@ -46,6 +46,39 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         }
 
         /// <summary>
+        /// Synchronously marks an entity as deleted and saves changes.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
+        /// <param name="entity">The entity to delete. Cannot be null.</param>
+        /// <returns>The number of affected rows.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="entity"/> is null.</exception>
+        public int Delete<TEntity>(TEntity entity) where TEntity : BaseEntity
+        {
+            CheckEntityIsNull(entity);
+            SetDeleted(entity);
+            _dbContext.Entry(entity).State = EntityState.Modified;
+            return _dbContext.SaveChanges();
+        }
+
+        /// <summary>
+        /// Synchronously marks a collection of entities as deleted and saves changes.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
+        /// <param name="entities">The collection to delete. Cannot be null.</param>
+        /// <returns>The number of affected rows.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="entities"/> is null.</exception>
+        public int Delete<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity
+        {
+            CheckEntitiesIsNull(entities);
+            SetDeleted(entities);
+            foreach (var entity in entities)
+            {
+                _dbContext.Entry(entity).State = EntityState.Modified;
+            }
+            return _dbContext.SaveChanges();
+        }
+
+        /// <summary>
         /// Asynchronously marks an entity as deleted and saves changes.
         /// </summary>
         /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
@@ -145,6 +178,25 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return true;
         }
 
+        /// <summary>
+        /// Soft deletes an entity by ID if it exists and is not already deleted.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type.</typeparam>
+        /// <param name="id">The primary key value.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>True if deleted; false if not found or already deleted.</returns>
+        public async Task<bool> DeleteByIdAsync<TEntity>(object id, CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
+        {
+            var entity = await _dbContext.Set<TEntity>().FindAsync(new[] { id }, cancellationToken);
+            if (entity == null || entity.IsDeleted) return false;
+
+            SetDeleted(entity);
+            _dbContext.Entry(entity).State = EntityState.Modified;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
         #endregion Conditional Delete
 
         #region Safe Delete
@@ -181,7 +233,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// Note: Does not trigger change tracking or events.
         /// </summary>
         /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
-        /// <param name="predicate">The condition to match (e.g., x => x.IsDeleted && x.DeletedOnUtc < DateTime.UtcNow.AddMonths(-6)).</param>
+        /// <param name="predicate">The condition to match.</param>
         /// <returns>The number of affected rows.</returns>
         public async Task<int> DeleteFromQueryAsync<TEntity>(Expression<Func<TEntity, bool>> predicate)
             where TEntity : BaseEntity
@@ -189,6 +241,24 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await _dbContext.Set<TEntity>()
                 .Where(predicate)
                 .ExecuteDeleteAsync();
+        }
+
+        /// <summary>
+        /// Soft deletes entities matching the predicate using bulk update (EF Core 7+).
+        /// Does not trigger change tracking or events.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
+        /// <param name="predicate">The condition to match.</param>
+        /// <returns>The number of affected rows.</returns>
+        public async Task<int> SoftDeleteFromQueryAsync<TEntity>(Expression<Func<TEntity, bool>> predicate)
+            where TEntity : BaseEntity
+        {
+            return await _dbContext.Set<TEntity>()
+                .Where(predicate)
+                .Where(e => !e.IsDeleted)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(e => e.IsDeleted, true)
+                    .SetProperty(e => e.DeletedOnUtc, DateTime.UtcNow));
         }
 
         #endregion Bulk Delete (EF Core 7+)
@@ -208,13 +278,78 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         {
             CheckEntityIsNull(entity);
 
-            if (!entity.IsDeleted) return 0; // Already active
+            if (!entity.IsDeleted) return 0;
 
             entity.IsDeleted = false;
             entity.DeletedOnUtc = null;
 
             _dbContext.Entry(entity).State = EntityState.Modified;
             return await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Restores a collection of soft-deleted entities.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type.</typeparam>
+        /// <param name="entities">The entities to restore.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>The number of restored entities.</returns>
+        public async Task<int> RestoreRangeAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
+        {
+            var list = entities.ToList();
+            if (!list.Any()) return 0;
+
+            foreach (var entity in list.Where(e => e.IsDeleted))
+            {
+                entity.IsDeleted = false;
+                entity.DeletedOnUtc = null;
+                _dbContext.Entry(entity).State = EntityState.Modified;
+            }
+
+            return await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Restores a soft-deleted entity by ID.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type.</typeparam>
+        /// <param name="id">The primary key.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>True if restored; false if not found or already active.</returns>
+        public async Task<bool> RestoreByIdAsync<TEntity>(object id, CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
+        {
+            var entity = await _dbContext.Set<TEntity>().FindAsync(new[] { id }, cancellationToken);
+            if (entity == null || !entity.IsDeleted) return false;
+
+            entity.IsDeleted = false;
+            entity.DeletedOnUtc = null;
+            _dbContext.Entry(entity).State = EntityState.Modified;
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
+        /// <summary>
+        /// Attempts to restore an entity without throwing.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type.</typeparam>
+        /// <param name="entity">The entity to restore.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>True if successful.</returns>
+        public async Task<bool> TryRestoreAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
+        {
+            try
+            {
+                await RestoreAsync(entity, cancellationToken);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         #endregion Restore (Undelete)
@@ -250,5 +385,47 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         }
 
         #endregion Delete by Condition (Soft)
+         
+
+        #region Purge & Audit
+
+        /// <summary>
+        /// Hard deletes all soft-deleted entities older than the threshold.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type.</typeparam>
+        /// <param name="threshold">The cutoff date (e.g., 6 months ago).</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>The number of purged entities.</returns>
+        public async Task<int> PurgeSoftDeletedAsync<TEntity>(DateTime threshold, CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
+        {
+            return await _dbContext.Set<TEntity>()
+                .Where(e => e.IsDeleted && e.DeletedOnUtc < threshold)
+                .ExecuteDeleteAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Loads, soft deletes, and returns the entity if found.
+        /// Useful for audit or logging.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type.</typeparam>
+        /// <param name="id">The primary key.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>The deleted entity, or null if not found.</returns>
+        public async Task<TEntity?> DeleteAndReturnAsync<TEntity>(object id, CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity
+        {
+            var entity = await _dbContext.Set<TEntity>().FindAsync(new[] { id }, cancellationToken);
+            if (entity == null || entity.IsDeleted) return null;
+
+            SetDeleted(entity);
+            _dbContext.Entry(entity).State = EntityState.Modified;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            return entity;
+        }
+
+        #endregion Purge & Audit
+         
     }
-}
+} 

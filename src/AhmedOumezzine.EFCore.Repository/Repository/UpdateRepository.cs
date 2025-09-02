@@ -143,21 +143,24 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="entity"/> or <paramref name="properties"/> is null.</exception>
         /// <exception cref="InvalidOperationException">Thrown when the entity has an invalid primary key.</exception>
         public async Task<int> UpdateOnlyAsync<TEntity>(
-            TEntity entity,
-            string[] properties,
-            CancellationToken cancellationToken = default)
-            where TEntity : BaseEntity
+         TEntity entity,
+         string[] properties,
+         CancellationToken cancellationToken = default)
+         where TEntity : BaseEntity
         {
             CheckEntityIsNull(entity);
             if (properties == null) throw new ArgumentNullException(nameof(properties));
 
             if (!HasValidKey(entity))
-            {
                 throw new InvalidOperationException("Entity must have a valid primary key to perform partial update.");
-            }
 
+            // Attacher l'entité si elle n'est pas suivie
             var entry = _dbContext.Entry(entity);
-            entry.State = EntityState.Unchanged; // Start with unchanged
+            if (entry.State == EntityState.Detached)
+            {
+                _dbContext.Set<TEntity>().Attach(entity);
+                entry.State = EntityState.Unchanged;
+            }
 
             foreach (var prop in properties)
             {
@@ -172,6 +175,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
+
         #endregion Update Only (Partial Update)
 
         #region Conditional Update
@@ -185,16 +189,26 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <returns>True if the entity was found and updated; false otherwise.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="entity"/> is null.</exception>
         public async Task<bool> UpdateIfExistsAsync<TEntity>(
-            TEntity entity,
-            CancellationToken cancellationToken = default)
-            where TEntity : BaseEntity
+         TEntity entity,
+         CancellationToken cancellationToken = default)
+         where TEntity : BaseEntity
         {
             CheckEntityIsNull(entity);
 
             if (!HasValidKey(entity)) return false;
 
-            var key = GetKeyValue(entity);
-            var exists = await _dbContext.Set<TEntity>().AnyAsync(e => GetKeyValue(e).Equals(key), cancellationToken);
+            // Récupérer la propriété clé
+            var keyProperty = _dbContext.Model.FindEntityType(typeof(TEntity))
+                ?.FindPrimaryKey()?.Properties.FirstOrDefault();
+
+            if (keyProperty == null)
+                throw new InvalidOperationException("Entity does not have a primary key.");
+
+            var keyValue = typeof(TEntity).GetProperty(keyProperty.Name).GetValue(entity);
+
+            // Utiliser EF.Property pour que la requête soit traduisible en SQL
+            var exists = await _dbContext.Set<TEntity>()
+                .AnyAsync(e => EF.Property<object>(e, keyProperty.Name).Equals(keyValue), cancellationToken);
 
             if (!exists) return false;
 
@@ -202,6 +216,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return true;
         }
+
 
         #endregion Conditional Update
 

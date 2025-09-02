@@ -12,69 +12,74 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
     /// </summary>
     public interface IRepository : IQueryRepository
     {
-        #region Transactions
+        #region Basic Inserts
 
-        /// <summary>
-        /// Begins a new transaction with the specified isolation level.
-        /// </summary>
-        /// <param name="isolationLevel">The isolation level (default: Unspecified).</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>A task representing the transaction.</returns>
-        Task<IDbContextTransaction> BeginTransactionAsync(
-            IsolationLevel isolationLevel = IsolationLevel.Unspecified,
-            CancellationToken cancellationToken = default);
-
-        #endregion Transactions
-
-        #region Add (Add to context, no save)
-
-        /// <summary>
-        /// Adds an entity to the context. Does NOT save changes.
-        /// </summary>
-        void Add<TEntity>(TEntity entity) where TEntity : BaseEntity;
-
-        /// <summary>
-        /// Asynchronously adds an entity to the context. Does NOT save changes.
-        /// </summary>
-        Task AddAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
+        Task<object[]> InsertAsync<TEntity>(
+            TEntity entity,
+            CancellationToken cancellationToken = default)
             where TEntity : BaseEntity;
 
-        /// <summary>
-        /// Adds a collection of entities to the context. Does NOT save changes.
-        /// </summary>
-        void Add<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity;
-
-        /// <summary>
-        /// Asynchronously adds a collection of entities to the context. Does NOT save changes.
-        /// </summary>
-        Task AddAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+        Task InsertRangeAsync<TEntity>(
+            IEnumerable<TEntity> entities,
+            CancellationToken cancellationToken = default)
             where TEntity : BaseEntity;
 
-        #endregion Add (Add to context, no save)
-
-        #region Add and Save (Immediate persistence)
-
-        /// <summary>
-        /// Adds an entity and saves changes. Returns the primary key values.
-        /// </summary>
-        /// <typeparam name="TEntity">Entity type deriving from <see cref="BaseEntity"/>.</typeparam>
-        /// <param name="entity">The entity to insert.</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>An array of primary key values.</returns>
-        Task<object[]> AddAndSaveAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
+        Task<TEntity> InsertAndReturnAsync<TEntity>(
+            TEntity entity,
+            CancellationToken cancellationToken = default)
             where TEntity : BaseEntity;
 
-        /// <summary>
-        /// Adds a collection of entities and saves changes immediately.
-        /// </summary>
-        /// <typeparam name="TEntity">Entity type deriving from <see cref="BaseEntity"/>.</typeparam>
-        /// <param name="entities">The collection to insert.</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>A task representing the operation.</returns>
-        Task AddRangeAndSaveAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+        #endregion
+
+        #region Advanced Inserts
+
+        Task BulkInsertAsync<TEntity>(
+            IEnumerable<TEntity> entities,
+            CancellationToken cancellationToken = default)
             where TEntity : BaseEntity;
 
-        #endregion Add and Save (Immediate persistence)
+        Task InsertManyAsync<TEntity>(
+            IEnumerable<TEntity> entities,
+            int batchSize = 500,
+            CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity;
+
+        Task<object[]> InsertWithAuditAsync<TEntity>(
+            TEntity entity,
+            string userName,
+            CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity;
+
+        Task<bool> InsertIfNotExistsAsync<TEntity>(
+            Expression<Func<TEntity, bool>> predicate,
+            TEntity entity,
+            CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity;
+
+        Task<bool> TryInsertAsync<TEntity>(
+            TEntity entity,
+            CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity;
+
+        Task UpsertAsync<TEntity>(
+            Expression<Func<TEntity, bool>> predicate,
+            TEntity entity,
+            CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity;
+
+        Task InsertGraphAsync<TEntity>(
+            TEntity entity,
+            CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity;
+
+        Task InsertWithTransactionAsync<TEntity>(
+            IEnumerable<TEntity> entities,
+            CancellationToken cancellationToken = default)
+            where TEntity : BaseEntity;
+
+        #endregion
+
+
 
         #region Update
 
