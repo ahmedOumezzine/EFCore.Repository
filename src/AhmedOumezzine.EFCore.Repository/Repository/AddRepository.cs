@@ -1,5 +1,4 @@
 ﻿using AhmedOumezzine.EFCore.Repository.Entities;
-using AhmedOumezzine.EFCore.Repository.Entities.AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -13,22 +12,21 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
-       
         #region Basic Inserts
 
         /// <summary>
         /// Inserts a single entity and saves changes immediately.
+        /// Returns primary key values.
         /// </summary>
         public async Task<object[]> InsertAsync<TEntity>(
             TEntity entity,
             CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
-            CheckEntityIsNull(entity);
-            SetCreatedOnUtc(entity);
+            PrepareEntityForInsert(entity);
 
-            await _dbContext.Set<TEntity>().AddAsync(entity, cancellationToken).ConfigureAwait(false);
-            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await _dbContext.Set<TEntity>().AddAsync(entity, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
             var entry = _dbContext.Entry(entity);
             var primaryKey = entry.Metadata.FindPrimaryKey();
@@ -45,11 +43,13 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
-            CheckEntitiesIsNull(entities);
-            SetCreatedOnUtc(entities);
+            if (entities == null) throw new ArgumentNullException(nameof(entities));
 
-            await _dbContext.Set<TEntity>().AddRangeAsync(entities, cancellationToken).ConfigureAwait(false);
-            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var entity in entities)
+                PrepareEntityForInsert(entity);
+
+            await _dbContext.Set<TEntity>().AddRangeAsync(entities, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         /// <summary>
@@ -64,23 +64,13 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return entity;
         }
 
-        #endregion
+        #endregion Basic Inserts
 
         #region Advanced Inserts
 
         /// <summary>
-        /// Bulk inserts entities in a single batch.
-        /// </summary>
-        public async Task BulkInsertAsync<TEntity>(
-            IEnumerable<TEntity> entities,
-            CancellationToken cancellationToken = default)
-            where TEntity : BaseEntity
-        {
-            await InsertRangeAsync(entities, cancellationToken);
-        }
-
-        /// <summary>
         /// Inserts entities in chunks (useful for very large lists).
+        /// Each chunk triggers a SaveChanges call.
         /// </summary>
         public async Task InsertManyAsync<TEntity>(
             IEnumerable<TEntity> entities,
@@ -88,15 +78,21 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
+            if (entities == null) throw new ArgumentNullException(nameof(entities));
+
             foreach (var batch in entities.Chunk(batchSize))
             {
-                await InsertRangeAsync(batch, cancellationToken);
+                foreach (var entity in batch)
+                    PrepareEntityForInsert(entity);
+
+                await _dbContext.Set<TEntity>().AddRangeAsync(batch, cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
             }
         }
 
         /// <summary>
         /// Inserts with audit logging.
-        /// Requires an AuditLog entity in DbContext.
+        /// Returns primary key values.
         /// </summary>
         public async Task<object[]> InsertWithAuditAsync<TEntity>(
             TEntity entity,
@@ -104,20 +100,23 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
-            CheckEntityIsNull(entity);
-            SetCreatedOnUtc(entity);
+            PrepareEntityForInsert(entity);
 
             await _dbContext.Set<TEntity>().AddAsync(entity, cancellationToken);
 
-            var auditLog = new AuditLog
+            // Only log if AuditLog is part of the model
+            if (_dbContext.Model.FindEntityType(typeof(AuditLog)) != null)
             {
-                Action = "INSERT",
-                EntityName = typeof(TEntity).Name,
-                EntityId = entity.Id.ToString(),
-                UserName = userName,
-                CreatedOnUtc = DateTime.UtcNow
-            };
-            await _dbContext.Set<AuditLog>().AddAsync(auditLog, cancellationToken);
+                var auditLog = new AuditLog
+                {
+                    Action = "INSERT",
+                    EntityName = typeof(TEntity).Name,
+                    EntityId = entity.Id.ToString(),
+                    UserName = userName,
+                    CreatedOnUtc = DateTime.UtcNow
+                };
+                await _dbContext.Set<AuditLog>().AddAsync(auditLog, cancellationToken);
+            }
 
             await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -129,7 +128,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         }
 
         /// <summary>
-        /// Inserts entity only if it does not already exist.
+        /// Inserts entity only if it does not already exist (based on predicate).
         /// </summary>
         public async Task<bool> InsertIfNotExistsAsync<TEntity>(
             Expression<Func<TEntity, bool>> predicate,
@@ -138,18 +137,18 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             where TEntity : BaseEntity
         {
             if (predicate == null) throw new ArgumentNullException(nameof(predicate));
-            CheckEntityIsNull(entity);
 
             var exists = await _dbContext.Set<TEntity>().AnyAsync(predicate, cancellationToken);
             if (exists) return false;
 
+            PrepareEntityForInsert(entity);
             await _dbContext.Set<TEntity>().AddAsync(entity, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
             return true;
         }
 
         /// <summary>
-        /// Attempts to insert entity and returns false if it fails due to a DbUpdateException.
+        /// Attempts to insert entity and returns false if it fails due to a DbUpdateException (e.g., duplicate key).
         /// </summary>
         public async Task<bool> TryInsertAsync<TEntity>(
             TEntity entity,
@@ -166,9 +165,9 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 return false;
             }
         }
-
         /// <summary>
-        /// Insert or update (Upsert).
+        /// Insert or update (Upsert) based on a predicate.
+        /// ⚠️ Not atomic — use with unique constraints and error handling in production.
         /// </summary>
         public async Task UpsertAsync<TEntity>(
             Expression<Func<TEntity, bool>> predicate,
@@ -176,31 +175,26 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
+            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+
             var exists = await _dbContext.Set<TEntity>().AnyAsync(predicate, cancellationToken);
 
             if (exists)
+            {
+                // Mettre à jour LastModifiedOnUtc automatiquement
+                entity.LastModifiedOnUtc = DateTime.UtcNow;
                 _dbContext.Set<TEntity>().Update(entity);
+            }
             else
+            {
+                PrepareEntityForInsert(entity);
                 await _dbContext.Set<TEntity>().AddAsync(entity, cancellationToken);
+            }
 
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
-
-        /// <summary>
-        /// Inserts a graph of entities including related data.
-        /// </summary>
-        public async Task InsertGraphAsync<TEntity>(
-            TEntity entity,
-            CancellationToken cancellationToken = default)
-            where TEntity : BaseEntity
-        {
-            CheckEntityIsNull(entity);
-            SetCreatedOnUtc(entity);
-
-            await _dbContext.AddAsync(entity, cancellationToken);
-            await _dbContext.SaveChangesAsync(cancellationToken);
-        }
-
+         
         /// <summary>
         /// Inserts entities in a transaction (all-or-nothing).
         /// </summary>
@@ -209,9 +203,14 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
+            if (entities == null) throw new ArgumentNullException(nameof(entities));
+
             using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
             try
             {
+                foreach (var entity in entities)
+                    PrepareEntityForInsert(entity);
+
                 await _dbContext.Set<TEntity>().AddRangeAsync(entities, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
@@ -223,8 +222,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             }
         }
 
-        #endregion
-
-        
+        #endregion Advanced Inserts
     }
 }

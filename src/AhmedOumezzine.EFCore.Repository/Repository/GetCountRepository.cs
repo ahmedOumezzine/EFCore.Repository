@@ -1,7 +1,6 @@
 ﻿using AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
 
 namespace AhmedOumezzine.EFCore.Repository.Repository
@@ -14,57 +13,44 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
-        #region GetCountAsync (int)
+        #region Count (int)
 
         /// <summary>
-        /// Asynchronously retrieves the count of non-deleted entities of the specified type.
+        /// Gets the count of non-deleted entities.
         /// </summary>
-        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>The number of non-soft-deleted entities.</returns>
-        public async Task<int> GetCountAsync<TEntity>(CancellationToken cancellationToken = default)
+        public async Task<int> GetCountAsync<TEntity>(CancellationToken ct = default)
             where TEntity : BaseEntity
         {
             return await _dbContext.Set<TEntity>()
                 .Where(e => !e.IsDeleted)
                 .AsNoTracking()
-                .CountAsync(cancellationToken)
-                .ConfigureAwait(false);
+                .CountAsync(ct);
         }
 
         /// <summary>
-        /// Asynchronously retrieves the count of non-deleted entities that satisfy the given condition.
+        /// Gets the count of non-deleted entities matching a condition.
         /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="condition">The condition to filter entities.</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>The number of matching non-deleted entities.</returns>
         public async Task<int> GetCountAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
         {
             if (condition == null)
-                return await GetCountAsync<TEntity>(cancellationToken);
+                return await GetCountAsync<TEntity>(ct);
 
             return await _dbContext.Set<TEntity>()
                 .Where(e => !e.IsDeleted)
                 .Where(condition)
                 .AsNoTracking()
-                .CountAsync(cancellationToken)
-                .ConfigureAwait(false);
+                .CountAsync(ct);
         }
 
         /// <summary>
-        /// Asynchronously retrieves the count of non-deleted entities that satisfy all the given conditions.
+        /// Gets the count of non-deleted entities matching multiple conditions.
         /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="conditions">The list of conditions to filter entities.</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>The number of entities matching all conditions and not soft-deleted.</returns>
         public async Task<int> GetCountAsync<TEntity>(
             IEnumerable<Expression<Func<TEntity, bool>>> conditions,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
         {
             var query = _dbContext.Set<TEntity>()
@@ -79,63 +65,49 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 }
             }
 
-            return await query.CountAsync(cancellationToken).ConfigureAwait(false);
+            return await query.CountAsync(ct);
         }
 
-        #endregion GetCountAsync (int)
+        #endregion Count (int)
 
-        #region GetLongCountAsync (long)
+        #region LongCount (long)
 
         /// <summary>
-        /// Asynchronously retrieves the long count of non-deleted entities of the specified type.
-        /// Use when the count may exceed int.MaxValue.
+        /// Gets the long count of non-deleted entities.
         /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>The number of non-soft-deleted entities as a long.</returns>
-        public async Task<long> GetLongCountAsync<TEntity>(CancellationToken cancellationToken = default)
+        public async Task<long> GetLongCountAsync<TEntity>(CancellationToken ct = default)
             where TEntity : BaseEntity
         {
             return await _dbContext.Set<TEntity>()
                 .Where(e => !e.IsDeleted)
                 .AsNoTracking()
-                .LongCountAsync(cancellationToken)
-                .ConfigureAwait(false);
+                .LongCountAsync(ct);
         }
 
         /// <summary>
-        /// Asynchronously retrieves the long count of non-deleted entities that satisfy the given condition.
+        /// Gets the long count of non-deleted entities matching a condition.
         /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="condition">The condition to filter entities.</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>The number of matching non-deleted entities as a long.</returns>
         public async Task<long> GetLongCountAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
         {
             if (condition == null)
-                return await GetLongCountAsync<TEntity>(cancellationToken);
+                return await GetLongCountAsync<TEntity>(ct);
 
             return await _dbContext.Set<TEntity>()
                 .Where(e => !e.IsDeleted)
                 .Where(condition)
                 .AsNoTracking()
-                .LongCountAsync(cancellationToken)
-                .ConfigureAwait(false);
+                .LongCountAsync(ct);
         }
 
         /// <summary>
-        /// Asynchronously retrieves the long count of non-deleted entities that satisfy all the given conditions.
+        /// Gets the long count of non-deleted entities matching multiple conditions.
         /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="conditions">The list of conditions to filter entities.</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>The number of entities matching all conditions and not soft-deleted, as a long.</returns>
         public async Task<long> GetLongCountAsync<TEntity>(
             IEnumerable<Expression<Func<TEntity, bool>>> conditions,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
         {
             var query = _dbContext.Set<TEntity>()
@@ -150,124 +122,88 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 }
             }
 
-            return await query.LongCountAsync(cancellationToken).ConfigureAwait(false);
+            return await query.LongCountAsync(ct);
         }
 
-        #endregion GetLongCountAsync (long)
+        #endregion LongCount (long)
 
-        #region HasAnyAsync (Existence Checks)
+        #region Existence Checks
 
         /// <summary>
-        /// Checks if any non-deleted entity of the specified type exists.
-        /// More efficient than GetCountAsync() > 0.
+        /// Checks if any non-deleted entity exists.
+        /// More efficient than Count > 0.
         /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>True if at least one entity exists; otherwise, false.</returns>
-        public async Task<bool> HasAnyAsync<TEntity>(CancellationToken cancellationToken = default)
+        public async Task<bool> HasAnyAsync<TEntity>(CancellationToken ct = default)
             where TEntity : BaseEntity
         {
             return await _dbContext.Set<TEntity>()
-                .AnyAsync(e => !e.IsDeleted, cancellationToken);
+                .AnyAsync(e => !e.IsDeleted, ct);
         }
 
         /// <summary>
         /// Checks if any non-deleted entity matches the condition.
         /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="condition">The condition to match.</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>True if a matching entity exists; otherwise, false.</returns>
         public async Task<bool> HasAnyAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
         {
             if (condition == null)
-                return await HasAnyAsync<TEntity>(cancellationToken);
+                return await HasAnyAsync<TEntity>(ct);
 
             return await _dbContext.Set<TEntity>()
                 .Where(e => !e.IsDeleted)
-                .AnyAsync(condition, cancellationToken);
+                .AnyAsync(condition, ct);
         }
 
-        #endregion HasAnyAsync (Existence Checks)
+        #endregion Existence Checks
 
-        #region CountDeletedAsync (Soft-Delete Audit)
+        #region Soft-Delete Statistics
 
         /// <summary>
         /// Counts the number of soft-deleted entities.
-        /// Useful for audits or cleanup operations.
         /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>The number of soft-deleted entities.</returns>
-        public async Task<int> CountDeletedAsync<TEntity>(CancellationToken cancellationToken = default)
+        public async Task<int> CountSoftDeletedAsync<TEntity>(CancellationToken ct = default)
             where TEntity : BaseEntity
         {
             return await _dbContext.Set<TEntity>()
-                .CountAsync(e => e.IsDeleted, cancellationToken);
+                .CountAsync(e => e.IsDeleted, ct);
         }
 
-        #endregion CountDeletedAsync (Soft-Delete Audit)
+        #endregion Soft-Delete Statistics
 
-        #region CountByStatusAsync (Dashboard / Stats)
+        #region Analytics & Grouping
 
         /// <summary>
         /// Counts entities grouped by a boolean status (e.g., IsActive).
         /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="statusSelector">The property to group by (e.g., u => u.IsActive).</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>A dictionary with true/false counts.</returns>
         public async Task<Dictionary<bool, int>> CountByStatusAsync<TEntity>(
             Expression<Func<TEntity, bool>> statusSelector,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
         {
             return await _dbContext.Set<TEntity>()
                 .Where(e => !e.IsDeleted)
                 .GroupBy(statusSelector)
                 .Select(g => new { Status = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(x => x.Status, x => x.Count, cancellationToken);
+                .ToDictionaryAsync(x => x.Status, x => x.Count, ct);
         }
 
-        #endregion CountByStatusAsync (Dashboard / Stats)
-
-        #region CountByDateRangeAsync (Analytics)
-
         /// <summary>
-        /// Counts entities created within a date range.
+        /// Counts entities created within a UTC date range (inclusive).
         /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="startDate">The start of the range (inclusive).</param>
-        /// <param name="endDate">The end of the range (inclusive).</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>The number of entities created in the range.</returns>
         public async Task<int> CountByDateRangeAsync<TEntity>(
             DateTime startDate,
             DateTime endDate,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
         {
             return await _dbContext.Set<TEntity>()
                 .CountAsync(e => !e.IsDeleted &&
                                  e.CreatedOnUtc >= startDate &&
-                                 e.CreatedOnUtc <= endDate,
-                           cancellationToken);
+                                 e.CreatedOnUtc <= endDate, ct);
         }
 
-        /// <summary>
-        /// Counts the number of soft-deleted entities.
-        /// </summary>
-        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
-        /// <returns>The count of soft-deleted entities.</returns>
-        public async Task<int> CountSoftDeletedAsync<TEntity>() where TEntity : BaseEntity
-        {
-            return await _dbContext.Set<TEntity>()
-                .CountAsync(e => e.IsDeleted);
-        }
-
-        #endregion CountByDateRangeAsync (Analytics)
+        #endregion Analytics & Grouping
     }
 }

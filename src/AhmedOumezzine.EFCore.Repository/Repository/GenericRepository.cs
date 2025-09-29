@@ -25,152 +25,71 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<IDbContextTransaction> BeginTransactionAsync(
-            IsolationLevel isolationLevel = IsolationLevel.Unspecified,
-            CancellationToken cancellationToken = default)
+        #region Helper
+
+        /// <summary>
+        /// Prepares a BaseEntity for insertion by setting audit and identity properties.
+        /// </summary>
+        private static void PrepareEntityForInsert<TEntity>(TEntity entity)
+            where TEntity : BaseEntity
         {
-            IDbContextTransaction dbContextTransaction = await _dbContext.Database.BeginTransactionAsync(isolationLevel, cancellationToken);
-            return dbContextTransaction;
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+
+            var now = DateTime.UtcNow;
+
+            if (entity.Id == Guid.Empty)
+                entity.Id = Guid.NewGuid();
+
+            entity.CreatedOnUtc = now;
+            entity.LastModifiedOnUtc = now;
+            entity.IsDeleted = false;
+            entity.DeletedOnUtc = null;
         }
 
-        public IQueryable<T> GetQueryable<T>() where T : BaseEntity
-        {
-            return _dbContext.Set<T>();
-        }
+        #endregion Helper
 
-        public void ClearChangeTracker()
-        {
-            _dbContext.ChangeTracker.Clear();
-        }
+        #region Helper
 
-        public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+        /// <summary>
+        /// Marks an entity as soft-deleted with audit timestamp.
+        /// </summary>
+        private static void MarkAsDeleted<TEntity>(TEntity entity) where TEntity : BaseEntity
         {
-            int count = await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            return count;
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            if (entity.IsDeleted) return; // déjà supprimé → rien à faire
+
+            entity.IsDeleted = true;
+            entity.DeletedOnUtc = DateTime.UtcNow;
         }
 
         /// <summary>
-        /// Ensures the entity is not null.
+        /// Marks a collection of entities as soft-deleted.
         /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="entity">The entity to check.</param>
-        /// <exception cref="ArgumentNullException"></exception>
-        private static void CheckEntityIsNull<TEntity>(TEntity entity)
+        private static void MarkAsDeleted<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity
         {
-            if (entity == null)
-                throw new ArgumentNullException(nameof(entity), $"The entity of type {typeof(TEntity).Name} cannot be null.");
-        }
-
-        /// <summary>
-        /// Ensures the collection of entities is not null or empty.
-        /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="entities">The collection to check.</param>
-        /// <exception cref="ArgumentNullException"></exception>
-        private static void CheckEntitiesIsNull<TEntity>(IEnumerable<TEntity> entities)
-        {
-            if (entities == null)
-                throw new ArgumentNullException(nameof(entities), $"The collection of entities of type {typeof(TEntity).Name} cannot be null.");
-
-            // Optional: if you want to prevent empty collections from being passed
-            // if (!entities.Any()) throw new ArgumentException("The collection cannot be empty.", nameof(entities));
-        }
-
-        /// <summary>
-        /// Sets the CreatedOnUtc property if not already set.
-        /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="entity">The entity to update.</param>
-        private void SetCreatedOnUtc<TEntity>(TEntity entity) where TEntity : BaseEntity
-        {
-            if (entity.CreatedOnUtc == default)
-                entity.CreatedOnUtc = DateTime.UtcNow;
-        }
-
-        /// <summary>
-        /// Sets the CreatedOnUtc property for a collection of entities if not already set.
-        /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="entities">The collection of entities.</param>
-        private void SetCreatedOnUtc<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity
-        {
+            if (entities == null) throw new ArgumentNullException(nameof(entities));
             foreach (var entity in entities)
-            {
-                if (entity.CreatedOnUtc == default)
-                    entity.CreatedOnUtc = DateTime.UtcNow;
-            }
+                MarkAsDeleted(entity);
         }
 
-        private bool HasValidKey<TEntity>(TEntity entity) where TEntity : BaseEntity
+        #endregion Helper
+        #region Helper
+
+        /// <summary>
+        /// Sets the LastModifiedOnUtc property to current UTC time.
+        /// </summary>
+        private static void SetLastModifiedOnUtc<TEntity>(TEntity entity) where TEntity : BaseEntity
         {
-            var entityType = _dbContext.Model.FindEntityType(typeof(TEntity));
-            var primaryKey = entityType?.FindPrimaryKey();
-
-            if (primaryKey == null) return false;
-
-            foreach (var property in primaryKey.Properties)
-            {
-                var propertyInfo = typeof(TEntity).GetProperty(property.Name);
-                var value = propertyInfo?.GetValue(entity);
-                var defaultValue = property.ClrType.IsValueType
-                    ? Activator.CreateInstance(property.ClrType)
-                    : null;
-
-                if (value == null || value.Equals(defaultValue))
-                    return false;
-            }
-
-            return true;
-        }
-
-        private void SetLastModifiedOnUtc<TEntity>(TEntity entity) where TEntity : BaseEntity
-        {
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
             entity.LastModifiedOnUtc = DateTime.UtcNow;
         }
 
-        private void SetLastModifiedOnUtc<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity
-        {
-            foreach (var entity in entities)
-            {
-                entity.LastModifiedOnUtc = DateTime.UtcNow;
-            }
-        }
+        #endregion
 
-        // Méthode pour définir IsDeleted sur true et DeletedOnUtc pour une seule entité
-
-        private void SetDeleted<TEntity>(TEntity entity) where TEntity : BaseEntity
-        {
-            if (!entity.IsDeleted)
-            {
-                entity.IsDeleted = true;
-                entity.DeletedOnUtc = DateTime.UtcNow;
-            }
-        }
-
-        /// <summary>
-        /// Marks a collection of entities as deleted.
-        /// </summary>
-        private void SetDeleted<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity
-        {
-            foreach (var entity in entities)
-            {
-                if (!entity.IsDeleted)
-                {
-                    entity.IsDeleted = true;
-                    entity.DeletedOnUtc = DateTime.UtcNow;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets the primary key value of the entity.
-        /// </summary>
-
-        private object GetKeyValue<TEntity>(TEntity entity)
-        {
-            var entityType = _dbContext.Model.FindEntityType(typeof(TEntity));
-            var key = entityType?.FindPrimaryKey().Properties.First();
-            return key != null ? typeof(TEntity).GetProperty(key.Name).GetValue(entity) : null;
-        }
+ 
+         
+    
+ 
+       
     }
 }

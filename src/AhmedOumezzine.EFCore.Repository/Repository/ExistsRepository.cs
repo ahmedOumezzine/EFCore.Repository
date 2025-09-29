@@ -13,29 +13,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
-        #region ExistsByIdAsync (Correct Signature)
+        #region Exists
 
         /// <summary>
-        /// Checks if an entity of the specified type with the given Guid ID exists and is not soft-deleted.
-        /// </summary>
-        public async Task<bool> ExistsByIdAsync<TEntity>(
-            Guid? id,
-            CancellationToken cancellationToken = default)
-            where TEntity : BaseEntity
-        {
-            if (id == null)
-                return false;
-
-            return await _dbContext.Set<TEntity>()
-                .AnyAsync(e => e.Id == id && !e.IsDeleted, cancellationToken);
-        }
-
-        #endregion ExistsByIdAsync (Correct Signature)
-
-        #region Other Exists Methods
-
-        /// <summary>
-        /// Checks if any entity of the specified type exists.
+        /// Checks if any non-deleted entity of the specified type exists.
         /// </summary>
         public async Task<bool> ExistsAsync<TEntity>(
             CancellationToken cancellationToken = default)
@@ -46,7 +27,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         }
 
         /// <summary>
-        /// Checks if any entity matching the condition exists.
+        /// Checks if any non-deleted entity matching the condition exists.
         /// </summary>
         public async Task<bool> ExistsAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
@@ -61,82 +42,49 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .AnyAsync(condition, cancellationToken);
         }
 
-        #endregion Other Exists Methods
-
-        #region Exists By Primary Key
-
         /// <summary>
-        /// Checks if an entity of the specified type with the given primary key value exists and is not soft-deleted.
-        /// Supports any primary key type (int, Guid, string, etc.).
+        /// Checks if a non-deleted entity with the given primary key exists.
+        /// Works with any key type (Guid, int, string, etc.).
         /// </summary>
-        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
-        /// <param name="keyValue">The primary key value to search for.</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>True if the entity exists and is not deleted; otherwise, false.</returns>
-        /// <exception cref="ArgumentException">Thrown when the entity has no primary key defined.</exception>
         public async Task<bool> ExistsByIdAsync<TEntity>(
-            object keyValue,
+            object id,
             CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
-            if (keyValue == null)
-                return false;
+            if (id == null) return false;
 
-            var entityType = _dbContext.Model.FindEntityType(typeof(TEntity));
-            var primaryKey = entityType?.FindPrimaryKey();
-
-            if (primaryKey == null)
+            // Optimisation : si l'ID est un Guid, on peut faire une requête directe
+            if (id is Guid guidId)
             {
-                throw new ArgumentException($"Entity {typeof(TEntity).Name} does not have a primary key defined.");
+                return await _dbContext.Set<TEntity>()
+                    .AnyAsync(e => e.Id == guidId && !e.IsDeleted, cancellationToken);
             }
 
-            // Construire l'expression : e => e.PK == keyValue && e.IsDeleted == false
+            // Sinon, fallback générique (utile si tu changes un jour de PK)
+            var entityType = _dbContext.Model.FindEntityType(typeof(TEntity));
+            var primaryKey = entityType?.FindPrimaryKey()
+                ?? throw new ArgumentException($"Entity {typeof(TEntity).Name} has no primary key.");
+
+            var pkProperty = primaryKey.Properties[0];
             var parameter = Expression.Parameter(typeof(TEntity), "e");
-            var property = Expression.Property(parameter, primaryKey.Properties[0].Name);
-            var equals = Expression.Equal(property, Expression.Constant(keyValue));
-            var isNotDeleted = Expression.Equal(
-                Expression.Property(parameter, nameof(BaseEntity.IsDeleted)),
-                Expression.Constant(false));
-            var and = Expression.AndAlso(equals, isNotDeleted);
-            var lambda = Expression.Lambda<Func<TEntity, bool>>(and, parameter);
+            var idProperty = Expression.Property(parameter, pkProperty.Name);
+            var isDeletedProperty = Expression.Property(parameter, nameof(BaseEntity.IsDeleted));
 
-            return await _dbContext.Set<TEntity>().AnyAsync(lambda, cancellationToken).ConfigureAwait(false);
+            var idEquals = Expression.Equal(idProperty, Expression.Constant(id));
+            var notDeleted = Expression.Equal(isDeletedProperty, Expression.Constant(false));
+            var body = Expression.AndAlso(idEquals, notDeleted);
+            var lambda = Expression.Lambda<Func<TEntity, bool>>(body, parameter);
+
+            return await _dbContext.Set<TEntity>().AnyAsync(lambda, cancellationToken);
         }
 
-        #endregion Exists By Primary Key
-
-        #region Exists By Composite Key (Optional)
-
-        /// <summary>
-        /// Checks if an entity with the specified composite key values exists.
-        /// Example: ExistsByCompositeKeyAsync<User>(new object[] { "tenant1", 123 }).
-        /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="keyValues">An array of key values in the order of the primary key properties.</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>True if the entity exists; otherwise, false.</returns>
-        public async Task<bool> ExistsByCompositeKeyAsync<TEntity>(
-            object[] keyValues,
-            CancellationToken cancellationToken = default)
-            where TEntity : BaseEntity
-        {
-            if (keyValues == null || keyValues.Length == 0)
-                return false;
-
-            var entity = _dbContext.Set<TEntity>().Find(keyValues);
-            return entity != null && !entity.IsDeleted;
-        }
-
-        #endregion Exists By Composite Key (Optional)
+        #endregion Exists
 
         #region Count
 
         /// <summary>
-        /// Counts the number of entities of the specified type that are not soft-deleted.
+        /// Counts non-deleted entities of the specified type.
         /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>The number of non-deleted entities.</returns>
         public async Task<int> CountAsync<TEntity>(CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
@@ -145,12 +93,8 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         }
 
         /// <summary>
-        /// Counts the number of entities matching the specified condition and not soft-deleted.
+        /// Counts non-deleted entities matching the condition.
         /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <param name="condition">The condition to match.</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>The number of matching entities.</returns>
         public async Task<int> CountAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
             CancellationToken cancellationToken = default)
@@ -166,22 +110,47 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #endregion Count
 
+        #region (Optional) Composite Key Exists – Only if really needed
+
         /// <summary>
-        /// Checks if an entity is marked as deleted.
+        /// ⚠️ Use only if you have composite keys.
+        /// Checks existence by composite key without loading the entity.
         /// </summary>
-        /// <typeparam name="TEntity">The entity type, must inherit from <see cref="BaseEntity"/>.</typeparam>
-        /// <param name="entity">The entity to check.</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>True if the entity is soft-deleted; false otherwise.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="entity"/> is null.</exception>
-        public async Task<bool> IsDeletedAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
+        public async Task<bool> ExistsByCompositeKeyAsync<TEntity>(
+            object[] keyValues,
+            CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
-            CheckEntityIsNull(entity);
+            if (keyValues == null || keyValues.Length == 0)
+                return false;
 
-            var key = GetKeyValue(entity);
-            return await _dbContext.Set<TEntity>()
-                .AnyAsync(e => GetKeyValue(e).Equals(key) && e.IsDeleted, cancellationToken);
+            var entityType = _dbContext.Model.FindEntityType(typeof(TEntity));
+            var primaryKey = entityType?.FindPrimaryKey()
+                ?? throw new ArgumentException($"Entity {typeof(TEntity).Name} has no primary key.");
+
+            if (primaryKey.Properties.Count != keyValues.Length)
+                throw new ArgumentException("Key values count does not match primary key properties.");
+
+            var parameter = Expression.Parameter(typeof(TEntity), "e");
+            var notDeleted = Expression.Equal(
+                Expression.Property(parameter, nameof(BaseEntity.IsDeleted)),
+                Expression.Constant(false));
+
+            var conditions = new List<Expression> { notDeleted };
+
+            for (int i = 0; i < primaryKey.Properties.Count; i++)
+            {
+                var prop = Expression.Property(parameter, primaryKey.Properties[i].Name);
+                var value = Expression.Constant(keyValues[i]);
+                conditions.Add(Expression.Equal(prop, value));
+            }
+
+            var body = conditions.Aggregate(Expression.AndAlso);
+            var lambda = Expression.Lambda<Func<TEntity, bool>>(body, parameter);
+
+            return await _dbContext.Set<TEntity>().AnyAsync(lambda, cancellationToken);
         }
+
+        #endregion (Optional) Composite Key Exists – Only if really needed
     }
 }

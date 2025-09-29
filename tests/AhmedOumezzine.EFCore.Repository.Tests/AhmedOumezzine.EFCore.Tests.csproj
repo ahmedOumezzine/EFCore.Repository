@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoFixture" Version="5.0.0-preview0012" />
+    <PackageReference Include="AutoFixture.AutoMoq" Version="5.0.0-preview0012" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.0-preview.7.25380.108" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.9" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="MSTest.TestAdapter" Version="4.0.0-preview.25465.3" />
+    <PackageReference Include="MSTest.TestFramework" Version="4.0.0-preview.25465.3" />
+  </ItemGroup>
+
+ 
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AhmedOumezzine.EFCore.Repository\AhmedOumezzine.EFCore.Repository.csproj" />
+  </ItemGroup>
+
+</Project>

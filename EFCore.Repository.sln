@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demo", "demo", "{9F13388E-9
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AhmedOumezzine.EFCore.Repository", "src\AhmedOumezzine.EFCore.Repository\AhmedOumezzine.EFCore.Repository.csproj", "{63D61B08-B86B-4D33-8C85-32230A1F4FCC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AhmedOumezzine.EFCore.Repository.Tests", "tests\AhmedOumezzine.EFCore.Repository.Tests\AhmedOumezzine.EFCore.Repository.Tests.csproj", "{B6914A2D-35F6-4114-A77B-8D07F9AF8A63}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AhmedOumezzine.EFCore.Tests", "tests\AhmedOumezzine.EFCore.Repository.Tests\AhmedOumezzine.EFCore.Tests.csproj", "{B6914A2D-35F6-4114-A77B-8D07F9AF8A63}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -13,48 +13,29 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     /// Supports filtering, projection, pagination, includes, specifications, and safe operations.
     /// Automatically excludes soft-deleted entities in standard methods.
     /// </summary>
-    /// <typeparam name="TDbContext">The type of the database context.</typeparam>
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
-        #region GetListAsync - Base Overloads (No Filter)
+        #region GetListAsync - Base Overloads
 
-        /// <summary>
-        /// Retrieves all non-deleted entities of the specified type.
-        /// </summary>
-        public Task<List<TEntity>> GetListAsync<TEntity>(CancellationToken cancellationToken = default)
+        public Task<List<TEntity>> GetListAsync<TEntity>(CancellationToken ct = default)
             where TEntity : BaseEntity
-        {
-            return GetListAsync<TEntity>(includes: null, asNoTracking: false, cancellationToken: cancellationToken);
-        }
+            => GetListAsync<TEntity>(includes: null, asNoTracking: false, ct);
 
-        /// <summary>
-        /// Retrieves all non-deleted entities with optional tracking control.
-        /// </summary>
-        public Task<List<TEntity>> GetListAsync<TEntity>(bool asNoTracking, CancellationToken cancellationToken = default)
+        public Task<List<TEntity>> GetListAsync<TEntity>(bool asNoTracking, CancellationToken ct = default)
             where TEntity : BaseEntity
-        {
-            return GetListAsync<TEntity>(includes: null, asNoTracking: asNoTracking, cancellationToken: cancellationToken);
-        }
+            => GetListAsync<TEntity>(includes: null, asNoTracking: asNoTracking, ct);
 
-        /// <summary>
-        /// Retrieves all non-deleted entities with optional includes.
-        /// </summary>
         public Task<List<TEntity>> GetListAsync<TEntity>(
             Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
-        {
-            return GetListAsync(includes, asNoTracking: false, cancellationToken);
-        }
+            => GetListAsync(includes, asNoTracking: false, ct);
 
-        /// <summary>
-        /// Retrieves all non-deleted entities with includes and optional tracking.
-        /// </summary>
         public async Task<List<TEntity>> GetListAsync<TEntity>(
             Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
             bool asNoTracking,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
         {
             var query = _dbContext.Set<TEntity>().Where(e => !e.IsDeleted);
@@ -65,44 +46,31 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             if (asNoTracking)
                 query = query.AsNoTracking();
 
-            return await query.ToListAsync(cancellationToken);
+            return await query.ToListAsync(ct);
         }
 
-        #endregion GetListAsync - Base Overloads (No Filter)
+        #endregion GetListAsync - Base Overloads
 
         #region GetListAsync - With Condition
 
-        /// <summary>
-        /// Retrieves entities matching the condition.
-        /// </summary>
         public Task<List<TEntity>> GetListAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
-        {
-            return GetListAsync(condition, includes: null, asNoTracking: false, cancellationToken: cancellationToken);
-        }
+            => GetListAsync(condition, includes: null, asNoTracking: false, ct);
 
-        /// <summary>
-        /// Retrieves entities matching the condition with optional tracking.
-        /// </summary>
         public Task<List<TEntity>> GetListAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
             bool asNoTracking,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
-        {
-            return GetListAsync(condition, includes: null, asNoTracking: asNoTracking, cancellationToken: cancellationToken);
-        }
+            => GetListAsync(condition, includes: null, asNoTracking: asNoTracking, ct);
 
-        /// <summary>
-        /// Retrieves entities matching the condition with includes and optional tracking.
-        /// </summary>
         public async Task<List<TEntity>> GetListAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
             Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
             bool asNoTracking,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
         {
             var query = _dbContext.Set<TEntity>().Where(e => !e.IsDeleted);
@@ -116,183 +84,139 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             if (asNoTracking)
                 query = query.AsNoTracking();
 
-            return await query.ToListAsync(cancellationToken);
+            return await query.ToListAsync(ct);
         }
 
         #endregion GetListAsync - With Condition
 
         #region GetListAsync - With Specification
 
-        /// <summary>
-        /// Retrieves entities matching the specification.
-        /// </summary>
         public Task<List<TEntity>> GetListAsync<TEntity>(
             Specification<TEntity> specification,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
-        {
-            return GetListAsync(specification, asNoTracking: false, cancellationToken: cancellationToken);
-        }
+            => GetListAsync(specification, asNoTracking: false, ct);
 
-        /// <summary>
-        /// Retrieves entities matching the specification with optional tracking.
-        /// </summary>
         public async Task<List<TEntity>> GetListAsync<TEntity>(
             Specification<TEntity> specification,
             bool asNoTracking,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
         {
-            var query = _dbContext.Set<TEntity>().AsQueryable();
+            // Appliquer le soft-delete AVANT la spécification
+            var query = _dbContext.Set<TEntity>().Where(e => !e.IsDeleted);
 
             if (specification != null)
                 query = query.GetSpecifiedQuery(specification);
-
-            query = query.Where(e => !e.IsDeleted);
 
             if (asNoTracking)
                 query = query.AsNoTracking();
 
-            return await query.ToListAsync(cancellationToken);
+            return await query.ToListAsync(ct);
         }
 
         #endregion GetListAsync - With Specification
 
-        #region GetListAsync - Projection (Select)
+        #region GetListAsync - Projection
 
-        /// <summary>
-        /// Retrieves a list of projected entities (e.g., DTOs).
-        /// </summary>
-        public async Task<List<TProjectedType>> GetListAsync<TEntity, TProjectedType>(
-            Expression<Func<TEntity, TProjectedType>> selectExpression,
-            CancellationToken cancellationToken = default)
+        public async Task<List<TProjected>> GetListAsync<TEntity, TProjected>(
+            Expression<Func<TEntity, TProjected>> selector,
+            CancellationToken ct = default)
             where TEntity : BaseEntity
-            where TProjectedType : class
+            where TProjected : class
         {
-            if (selectExpression == null)
-                throw new ArgumentNullException(nameof(selectExpression));
+            if (selector == null) throw new ArgumentNullException(nameof(selector));
 
             return await _dbContext.Set<TEntity>()
                 .Where(e => !e.IsDeleted)
-                .Select(selectExpression)
-                .ToListAsync(cancellationToken);
+                .Select(selector)
+                .ToListAsync(ct);
         }
 
-        /// <summary>
-        /// Retrieves projected entities matching a condition.
-        /// </summary>
-        public async Task<List<TProjectedType>> GetListAsync<TEntity, TProjectedType>(
+        public async Task<List<TProjected>> GetListAsync<TEntity, TProjected>(
             Expression<Func<TEntity, bool>> condition,
-            Expression<Func<TEntity, TProjectedType>> selectExpression,
-            CancellationToken cancellationToken = default)
+            Expression<Func<TEntity, TProjected>> selector,
+            CancellationToken ct = default)
             where TEntity : BaseEntity
-            where TProjectedType : class
+            where TProjected : class
         {
-            if (selectExpression == null)
-                throw new ArgumentNullException(nameof(selectExpression));
+            if (selector == null) throw new ArgumentNullException(nameof(selector));
 
             var query = _dbContext.Set<TEntity>().Where(e => !e.IsDeleted);
+            if (condition != null) query = query.Where(condition);
 
-            if (condition != null)
-                query = query.Where(condition);
-
-            return await query.Select(selectExpression).ToListAsync(cancellationToken);
+            return await query.Select(selector).ToListAsync(ct);
         }
 
-        /// <summary>
-        /// Retrieves projected entities matching a specification.
-        /// </summary>
-        public async Task<List<TProjectedType>> GetListAsync<TEntity, TProjectedType>(
+        public async Task<List<TProjected>> GetListAsync<TEntity, TProjected>(
             Specification<TEntity> specification,
-            Expression<Func<TEntity, TProjectedType>> selectExpression,
-            CancellationToken cancellationToken = default)
+            Expression<Func<TEntity, TProjected>> selector,
+            CancellationToken ct = default)
             where TEntity : BaseEntity
-            where TProjectedType : class
+            where TProjected : class
         {
-            if (selectExpression == null)
-                throw new ArgumentNullException(nameof(selectExpression));
+            if (selector == null) throw new ArgumentNullException(nameof(selector));
 
-            var query = _dbContext.Set<TEntity>().AsQueryable();
+            var query = _dbContext.Set<TEntity>().Where(e => !e.IsDeleted);
 
             if (specification != null)
                 query = query.GetSpecifiedQuery(specification);
 
-            query = query.Where(e => !e.IsDeleted);
-
-            return await query.Select(selectExpression).ToListAsync(cancellationToken);
+            return await query.Select(selector).ToListAsync(ct);
         }
 
-        #endregion GetListAsync - Projection (Select)
+        #endregion GetListAsync - Projection
 
         #region GetListAsync - Pagination
 
-        /// <summary>
-        /// Retrieves a paginated list of entities.
-        /// </summary>
         public async Task<PaginatedList<TEntity>> GetListAsync<TEntity>(
             PaginationSpecification<TEntity> specification,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
         {
-            if (specification == null)
-                throw new ArgumentNullException(nameof(specification));
+            if (specification == null) throw new ArgumentNullException(nameof(specification));
 
             var query = _dbContext.Set<TEntity>().Where(e => !e.IsDeleted);
-            return await query.ToPaginatedListAsync(specification, cancellationToken);
+            return await query.ToPaginatedListAsync(specification, ct);
         }
 
-        /// <summary>
-        /// Retrieves a paginated list of projected entities.
-        /// </summary>
-        public async Task<PaginatedList<TProjectedType>> GetListAsync<TEntity, TProjectedType>(
+        public async Task<PaginatedList<TProjected>> GetListAsync<TEntity, TProjected>(
             PaginationSpecification<TEntity> specification,
-            Expression<Func<TEntity, TProjectedType>> selectExpression,
-            CancellationToken cancellationToken = default)
+            Expression<Func<TEntity, TProjected>> selector,
+            CancellationToken ct = default)
             where TEntity : BaseEntity
-            where TProjectedType : class
+            where TProjected : class
         {
-            if (specification == null)
-                throw new ArgumentNullException(nameof(specification));
-            if (selectExpression == null)
-                throw new ArgumentNullException(nameof(selectExpression));
+            if (specification == null) throw new ArgumentNullException(nameof(specification));
+            if (selector == null) throw new ArgumentNullException(nameof(selector));
 
-            var query = _dbContext.Set<TEntity>().AsQueryable();
+            var query = _dbContext.Set<TEntity>().Where(e => !e.IsDeleted);
 
             if (specification != null)
                 query = query.GetSpecifiedQuery((SpecificationBase<TEntity>)specification);
 
-            query = query.Where(e => !e.IsDeleted);
-
-            return await query.Select(selectExpression)
-                .ToPaginatedListAsync(specification.PageIndex, specification.PageSize, cancellationToken);
+            return await query.Select(selector)
+                .ToPaginatedListAsync(specification.PageIndex, specification.PageSize, ct);
         }
 
         #endregion GetListAsync - Pagination
 
-        #region GetActiveListAsync (Semantic Alias)
+        #region Specialized Lists
 
         /// <summary>
-        /// Retrieves a list of non-soft-deleted entities.
-        /// Explicit alias for GetListAsync with soft-delete filtering.
+        /// Alias for GetListAsync (semantic clarity).
         /// </summary>
-        public Task<List<TEntity>> GetActiveListAsync<TEntity>(CancellationToken cancellationToken = default)
+        public Task<List<TEntity>> GetActiveListAsync<TEntity>(CancellationToken ct = default)
             where TEntity : BaseEntity
-        {
-            return GetListAsync<TEntity>(cancellationToken);
-        }
-
-        #endregion GetActiveListAsync (Semantic Alias)
-
-        #region GetDeletedListAsync (Audit / Restore)
+            => GetListAsync<TEntity>(ct);
 
         /// <summary>
-        /// Retrieves a list of soft-deleted entities.
-        /// Useful for audit, restore, or purge operations.
+        /// Retrieves soft-deleted entities (for audit/restore).
         /// </summary>
         public async Task<List<TEntity>> GetDeletedListAsync<TEntity>(
             Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes = null,
-            bool asNoTracking = false,
-            CancellationToken cancellationToken = default)
+            bool asNoTracking = true, // ✅ No tracking by default
+            CancellationToken ct = default)
             where TEntity : BaseEntity
         {
             var query = _dbContext.Set<TEntity>().Where(e => e.IsDeleted);
@@ -303,28 +227,23 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             if (asNoTracking)
                 query = query.AsNoTracking();
 
-            return await query.ToListAsync(cancellationToken);
+            return await query.ToListAsync(ct);
         }
 
-        #endregion GetDeletedListAsync (Audit / Restore)
+        #endregion Specialized Lists
 
-        #region TryGetListAsync (Safe Access)
+        #region Safe & Utility Methods
 
-        /// <summary>
-        /// Attempts to retrieve a list of entities without throwing.
-        /// </summary>
-        /// <returns>True and the list if successful; otherwise, False and empty list.</returns>
         public async Task<(bool Success, List<TEntity> Items)> TryGetListAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition = null,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
         {
             try
             {
                 var items = condition == null
-                    ? await GetListAsync<TEntity>(cancellationToken)
-                    : await GetListAsync(condition, cancellationToken);
-
+                    ? await GetListAsync<TEntity>(ct)
+                    : await GetListAsync(condition, ct);
                 return (true, items);
             }
             catch
@@ -333,56 +252,39 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             }
         }
 
-        #endregion TryGetListAsync (Safe Access)
-
-        #region GetDistinctByAsync (Dropdowns / Filters)
-
         /// <summary>
-        /// Retrieves distinct values of a property (e.g., statuses, categories).
+        /// Gets distinct values of a property (includes nulls if applicable).
         /// </summary>
-        /// <typeparam name="TEntity">The entity type.</typeparam>
-        /// <typeparam name="TKey">The property type (e.g., string, int).</typeparam>
-        /// <param name="keySelector">The property to extract (e.g., u => u.Status).</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>A list of distinct non-null values.</returns>
         public async Task<List<TKey>> GetDistinctByAsync<TEntity, TKey>(
             Expression<Func<TEntity, TKey>> keySelector,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
         {
-            if (keySelector == null)
-                throw new ArgumentNullException(nameof(keySelector));
+            if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
 
             return await _dbContext.Set<TEntity>()
                 .Where(e => !e.IsDeleted)
                 .Select(keySelector)
-                .Where(x => x != null)
                 .Distinct()
-                .ToListAsync(cancellationToken);
+                .ToListAsync(ct);
         }
 
-        #endregion GetDistinctByAsync (Dropdowns / Filters)
-
-        #region ExistsAnyAndListAsync (Optimized Load)
-
         /// <summary>
-        /// Checks if any entities exist and returns the list if so.
-        /// Reduces database roundtrips for "has items + load" scenarios.
+        /// Loads the full list and checks if any items exist.
+        /// Note: This loads all data — use only for small datasets.
         /// </summary>
         public async Task<(bool HasAny, List<TEntity> Items)> ExistsAnyAndListAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition = null,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             where TEntity : BaseEntity
         {
             var query = _dbContext.Set<TEntity>().Where(e => !e.IsDeleted);
+            if (condition != null) query = query.Where(condition);
 
-            if (condition != null)
-                query = query.Where(condition);
-
-            var items = await query.ToListAsync(cancellationToken);
+            var items = await query.ToListAsync(ct);
             return (items.Any(), items);
         }
 
-        #endregion ExistsAnyAndListAsync (Optimized Load)
+        #endregion Safe & Utility Methods
     }
 }

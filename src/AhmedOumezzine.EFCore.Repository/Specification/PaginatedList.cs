@@ -1,4 +1,4 @@
-﻿namespace AhmedOumezzine.EFCore.Repository.Extensions
+﻿namespace AhmedOumezzine.EFCore.Repository.Specification
 {
     /// <summary>
     /// The object contains pagination info and items.
