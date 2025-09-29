@@ -1,11 +1,8 @@
-﻿using AhmedOumezzine.EFCore.Repository.Entities;
-using AhmedOumezzine.EFCore.Repository.Repository;
+﻿using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Tests.Entity;
-using AhmedOumezzine.EFCore.Tests.Repository;
 using AutoFixture;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AhmedOumezzine.EFCore.Repository.Tests
 {

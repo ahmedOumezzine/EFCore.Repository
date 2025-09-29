@@ -91,6 +91,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         public TestDbContext(DbContextOptions<TestDbContext> options) : base(options) { }
 
         public DbSet<TestEntity> TestEntities => Set<TestEntity>();
+        public DbSet<ParentEntity> ParentEntities => Set<ParentEntity>();
+        public DbSet<ChildEntity> ChildEntities => Set<ChildEntity>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
