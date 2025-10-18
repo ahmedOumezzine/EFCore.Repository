@@ -2,33 +2,24 @@
 
 > **Un repository générique léger, moderne et extensible pour Entity Framework Core (EF Core 6/7/8/9)**
 
-Éliminez la répétition du code CRUD et accélérez votre développement avec une couche repository **prête à l’emploi**, **100 % async**, et **compatible avec le soft delete, la pagination, les projections et les specifications**.
-
-🔧 Parfait pour les projets ASP.NET Core, Minimal APIs, et applications console.  
-📦 Facile à intégrer, simple à étendre.
+Éliminez la répétition du code CRUD et accélérez votre développement avec une couche repository **prête à l’emploi**, **100 % async**, et **optimisée pour le soft delete, la pagination, les projections et les specifications.**
 
 ---
 
-## 🌟 Pourquoi utiliser ce Repository ?
+## 🌟 Pourquoi choisir ce Repository ?
 
-Le pattern Repository divise, mais **bien conçu, il devient un levier de productivité**.
+Le pattern Repository divise, mais **bien conçu, il devient un levier de productivité.**
 
 Avec `AhmedOumezzine.EFCore.Repository`, vous obtenez :
 
-- ✅ Réduction drastique de la duplication de code
-- ✅ Support du **soft delete** (`IsDeleted`, `DeletedOnUtc`)
-- ✅ Pagination native avec `PaginatedList<T>`
-- ✅ Projections (`Select` vers DTO)
-- ✅ Specifications réutilisables
-- ✅ Requêtes SQL brutes sécurisées
-- ✅ Bulk operations (EF Core 7+)
-- ✅ 100 % **async/await**
-- ✅ Testable (avec SQLite en mémoire)
-- ✅ Léger, modulaire, facile à étendre
+- ✅ **Productivité** : Réduction drastique de la duplication de code CRUD.
+- ✅ **Performance** : Support natif des **Bulk Operations** (EF Core 7+) pour des mises à jour et suppressions ultra-rapides.
+- ✅ **Design** : Pagination native (`PaginatedList<T>`) et Projections (`Select` vers DTO) pour des API efficaces.
+- ✅ **Testabilité** : Parfaitement compatible avec SQLite en mémoire et les frameworks de *mocking*.
+- ✅ **Confort** : Gestion native du **soft delete** (`IsDeleted`, `DeletedOnUtc`) et des transactions.
+- ✅ **Flexibilité** : `Specifications` réutilisables et support des requêtes SQL brutes sécurisées.
 
-> 💡 **Vous n’êtes pas obligé de tout utiliser** :  
-> Intégrez seulement les parties dont vous avez besoin.  
-> Combinez avec vos propres repositories métier (`IProductService`, etc.).
+> 💡 **Intégration Modulaire** : Incorporez seulement les méthodes dont vous avez besoin. Combinez ce dépôt générique avec vos propres services métier spécifiques (ex: `IProductService`) sans conflit.
 
 ---
 
@@ -37,54 +28,55 @@ Avec `AhmedOumezzine.EFCore.Repository`, vous obtenez :
 ### 1. Installez le package
 
 ```bash
-dotnet add package AhmedOumezzine.EFCore.Repository 
+dotnet add package AhmedOumezzine.EFCore.Repository
 ```
-### 2. Enregistrez le repository dans Program.cs (ou Startup.cs)
-```csharp 
+2. Enregistrez le repository via l'extension DI (Program.cs)Utilisez la méthode d'extension pour simplifier l'enregistrement de votre DbContext et du dépôt générique.
+
+```C#
+// 1. Configurez le DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
  
-// 🔹 Ajout du Generic Repository
-builder.Services.AddGenericRepository<AppDbContext>(); 
+// 2. 🔹 Enregistrement du Generic Repository
+ 
+builder.Services.AddGenericRepository<AppDbContext>();
 ```
-### 3. Injectez IRepository dans vos services ou contrôleurs
-```csharp 
+3. Injectez IRepository dans vos services ou contrôleursLe dépôt générique est injecté dans le conteneur de services et prêt à l'emploi.
+
+```C#
 public class ProductsController : ControllerBase
 {
-    private readonly IRepository _repository;
+    // Injecte IRepository<TDbContext>
+    private readonly IRepository<AppDbContext> _repository; 
 
-    public ProductsController(IRepository repository)
+    public ProductsController(IRepository<AppDbContext> repository)
     {
         _repository = repository;
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get()
+    public async Task<IActionResult> GetProducts()
     {
-        var products = await _repository.GetListAsync<Product>();
+        // Récupération de la liste de l'entité Product
+        var products = await _repository.GetListAsync<Product>(); 
         return Ok(products);
     }
 }
 ```
-## 📚 Documentation
-📘 Consultez le Wiki complet pour :
-- Méthodes CRUD (Add, Update, Delete)
-- Requêtes (Get, GetList, Pagination)
-- SQL brut
-- Configuration DI
-- Bonnes pratiques
+## 📚 Documentation Complète
+Pour des exemples détaillés sur les Bulk Operations, le Soft Delete et la Pagination, consultez le Wiki.
 
-## ⭐ Donnez une étoile ! ✨
-Si vous trouvez cette bibliothèque utile, donnez une étoile ⭐ pour m’encourager à continuer à créer des projets open source !
-Merci pour votre soutien ❤️
+📘 Consulter le [Wiki de AhmedOumezzine.EFCore.Repository](https://github.com/ahmedOumezzine/EFCore.Repository/wiki)
+
+## 🤝 Contribuer & ContactVotre feedback est essentiel. 
+
+Toute contribution (PR, rapport de bug, suggestion) est la bienvenue.
+
+⭐ Soutenez: Donnez une étoile ⭐ sur GitHub si ce projet vous est utile !
+
+🐞 Issues : Signaler un bug ou demander une fonctionnalité
+
+📧 Contact :  ahmedoumezzine@outlook.fr
 
 ## 📄 Licence
-Ce projet est sous licence MIT — libre d’utilisation, modification et distribution, même à des fins commerciales.
-[Consultez la licence.](https://github.com/ahmedOumezzine/EFCore.Repository/blob/main/LICENSE.txt "Consultez la licence.")
-
-## 📬 Contact & Contributions
-📧 Email : ahmedoumezzine@outlook.fr
-
-🐞 Issues : [Signaler un bug ou demander une fonctionnalité](https://github.com/ahmedOumezzine/EFCore.Repository/issues "Signaler un bug ou demander une fonctionnalité")
-
-🤝 Contributions : Les PR sont les bienvenues ! (Respectez les conventions de code)
+Ce projet est publié sous licence MIT — libre d’utilisation, modification et distribution, même à des fins commerciales.
