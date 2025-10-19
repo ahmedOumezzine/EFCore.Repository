@@ -10,11 +10,15 @@ namespace AhmedOumezzine.EFCore.Repository.Specification
         where T : class
     {
 
-        public PaginationSpecification(int pageIndex,int pageSize)
+        public PaginationSpecification()
+        {
+        }
+
+        public PaginationSpecification(int pageIndex, int pageSize)
         {
             PageIndex = pageIndex;
             PageSize = pageSize;
-        }   
+        }
         /// <summary>
         /// Gets or sets the current page index.
         /// </summary>

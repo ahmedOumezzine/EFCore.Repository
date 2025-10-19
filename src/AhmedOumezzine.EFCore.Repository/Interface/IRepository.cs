@@ -12,6 +12,8 @@ namespace AhmedOumezzine.EFCore.Repository.Interface
     /// </summary>
     public interface IRepository
     {
+         
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         #region ===== ADD / INSERT =====
 
         Task<object[]> InsertAsync<TEntity>(TEntity entity, CancellationToken ct = default)

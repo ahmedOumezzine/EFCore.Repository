@@ -24,9 +24,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
-
-        #region Helper
-
+         
         /// <summary>
         /// Prepares a BaseEntity for insertion by setting audit and identity properties.
         /// </summary>
@@ -44,11 +42,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             entity.LastModifiedOnUtc = now;
             entity.IsDeleted = false;
             entity.DeletedOnUtc = null;
-        }
-
-        #endregion Helper
-
-        #region Helper
+        } 
 
         /// <summary>
         /// Marks an entity as soft-deleted with audit timestamp.
@@ -71,9 +65,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             foreach (var entity in entities)
                 MarkAsDeleted(entity);
         }
-
-        #endregion Helper
-        #region Helper
+         
 
         /// <summary>
         /// Sets the LastModifiedOnUtc property to current UTC time.
@@ -82,14 +74,13 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
             entity.LastModifiedOnUtc = DateTime.UtcNow;
+        } 
+
+        public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+        {
+            int count = await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            return count;
         }
 
-        #endregion
-
- 
-         
-    
- 
-       
     }
 }
