@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Repository;
+using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Repository.Tests;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using AutoFixture;
@@ -13,11 +13,10 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
     public class UpdateRepositoryPerformanceTests : RepositoryTestBase<TestEntity>
     {
         private Fixture _fixture = new();
-        private Repository<TestDbContext> _repo;
-        private TestDbContext _dbContext;
+        private Repository<TestDbContext> _repo = null!;
+        private TestDbContext _dbContext = null!;
         private const int LARGE_DATA_COUNT = 50000;
-        private List<TestEntity> _entitiesToUpdate;
-
+        private List<TestEntity> _entitiesToUpdate = null!;
         [TestInitialize]
         public async Task TestInitialize()
         {
@@ -111,7 +110,7 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
             stopwatch.Stop();
 
             // Assert
-            Assert.AreEqual(_entitiesToUpdate.Count, affectedRows);
+            Assert.AreEqual(_entitiesToUpdate.Count(), affectedRows);
             LogPerformance("UpdateFromQueryAsync (Bulk EF Core 7+)", stopwatch.ElapsedMilliseconds);
         }
 

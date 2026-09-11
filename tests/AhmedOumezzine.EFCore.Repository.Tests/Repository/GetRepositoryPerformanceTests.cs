@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Repository;
+using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Repository.Tests;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using AutoFixture;
@@ -11,11 +11,10 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
     public class GetPerformanceTests : RepositoryTestBase<TestEntity>
     {
         private Fixture _fixture = new();
-        private Repository<TestDbContext> _repo;
+        private Repository<TestDbContext> _repo = null!;
         private const int LARGE_DATA_COUNT = 100000;
-        private Guid _targetId;
-        private TestEntity _targetEntity;
-
+        private Guid _targetId = Guid.Empty;
+        private TestEntity _targetEntity = null!;
         [TestInitialize]
         public async Task TestInitialize()
         {

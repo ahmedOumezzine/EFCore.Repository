@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Repository;
+using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Repository.Tests;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using System.Diagnostics;
@@ -9,11 +9,10 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
     [TestCategory("Performance")]
     public class GetByIdRepositoryPerformanceTests : RepositoryTestBase<TestEntity>
     {
-        private Repository<TestDbContext> _repo;
+        private Repository<TestDbContext> _repo = null!;
         private const int LARGE_DATA_COUNT = 50000;
-        private Guid[] _guids;
-        private List<TestEntity> _entities;
-
+        private Guid[] _guids = null!;
+        private List<TestEntity> _entities = null!;
         [TestInitialize]
         public async Task TestInitialize()
         {
@@ -141,7 +140,7 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
             stopwatch.Stop();
 
             // Assert
-            Assert.AreEqual(idsToFind.Count, entities.Count);
+            Assert.HasCount(idsToFind.Count, entities);
             LogPerformance("GetByIdsAsync (1000 items)", stopwatch.ElapsedMilliseconds, idsToFind.Count);
         }
 

@@ -631,3 +631,32 @@ Boundary issue: **NO**; scenario dates avoid boundaries and follow the inclusive
 `READY_FOR_REMOTE_CI_RETRY = YES`
 
 Reason: The complete post-fix functional suite passes 173/173, Release build and pack pass, package artifacts are valid, git diff check passes, and the previous environment lock is resolved. The missing Count-family summary is treated as a runner reporting issue rather than a functional failure because the full suite includes those tests and is green.
+
+## Release 2.0.0 preparation
+
+- Package version: 2.0.0
+- Target framework: net9.0
+- EF Core: 9.0.9
+- Functional SQLite: 173/173 PASS
+- Release build: PASS
+- NUPKG/SNUPKG: generated locally
+- Consumer PackageReference validation: PASS
+- Remote publication, tag, and NuGet push: intentionally not performed
+- Known limitations: SQL Server validation pending; concurrent Upsert atomicity is not guaranteed; bulk audit timestamp uses two statements; SQL Server ExecutionStrategy validation pending
+
+## Test Warning Cleanup Before Release
+
+The Release build baseline reported MSTEST0001, MSTEST0037, CS0618, CS8618, CS8602, CS8625, and CS8631 warnings in the test project. Test-only fixes initialize guaranteed test fixtures, add explicit assembly non-parallelization for shared SQLite state, modernize MSTest assertions, migrate EF Core check constraints to ToTable, and add nullability guards. No production code, public API, target framework, package version, or expected test behavior was changed by this cleanup.
+
+| Code | Before | After |
+| --- | ---: | ---: |
+| MSTEST0001 | 2 | 0 |
+| MSTEST0037 | 84 | 0 |
+| CS0618 | 4 | 0 |
+| CS8618 | 82 | 0 |
+| CS8602 | 22 | 0 |
+| CS8625 | 16 | 0 |
+| CS8631 | 2 | 0 |
+| Other | 0 | 0 |
+
+The warning cleanup gate is complete when the Release solution build is warning-free, the functional SQLite suite remains 173/173, package artifacts remain valid, and git diff --check passes.

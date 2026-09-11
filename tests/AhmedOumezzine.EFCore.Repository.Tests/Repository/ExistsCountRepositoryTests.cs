@@ -8,8 +8,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
     public class ExistsCountRepositoryTests : RepositoryTestBase<TestEntity>
     {
         private Fixture _fixture = new();
-        private Repository<TestDbContext> _repo;
-
+        private Repository<TestDbContext> _repo = null!;
         [TestInitialize]
         public async Task TestInitialize()
         {

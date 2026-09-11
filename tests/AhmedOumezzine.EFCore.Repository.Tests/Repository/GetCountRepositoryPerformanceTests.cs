@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Repository;
+using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Repository.Tests;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using System.Diagnostics;
@@ -10,7 +10,7 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
     [TestCategory("Performance")]
     public class GetCountRepositoryPerformanceTests : RepositoryTestBase<TestEntity>
     {
-        private Repository<TestDbContext> _repo;
+        private Repository<TestDbContext> _repo = null!;
         private const int LARGE_DATA_COUNT = 500000; // Utiliser un très grand nombre pour un test pertinent
         private string _targetName = "TargetEntity";
 

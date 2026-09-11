@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Repository;
+using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Repository.Specification;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using AutoFixture;
@@ -10,10 +10,9 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
     public class GetListRepositoryTests : RepositoryTestBase<TestEntity>
     {
         private Fixture _fixture = new();
-        private Repository<TestDbContext> _repo;
-        private List<TestEntity> _activeEntities;
-        private List<TestEntity> _deletedEntities;
-
+        private Repository<TestDbContext> _repo = null!;
+        private List<TestEntity> _activeEntities = null!;
+        private List<TestEntity> _deletedEntities = null!;
         [TestInitialize]
         public async Task TestInitialize()
         {
@@ -40,7 +39,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var entities = await _repo.GetListAsync<TestEntity>();
 
             // Assert
-            Assert.AreEqual(_activeEntities.Count, entities.Count);
+            Assert.HasCount(_activeEntities.Count, entities);
         }
 
         [TestMethod]
@@ -71,7 +70,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
 
             // Assert
             Assert.IsTrue(parents.Any());
-            Assert.AreEqual(1, parents.First().Children.Count);
+            Assert.HasCount(1, parents.First().Children);
         }
 
         [TestMethod]
@@ -90,7 +89,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
 
             // Assert
             Assert.AreEqual(EntityState.Detached, CreateDbContext().Entry(parents.First()).State);
-            Assert.AreEqual(1, parents.First().Children.Count);
+            Assert.HasCount(1, parents.First().Children);
         }
 
         #endregion
@@ -110,7 +109,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var entities = await _repo.GetListAsync<TestEntity>(e => e.Name == "SpecialName");
 
             // Assert
-            Assert.AreEqual(1, entities.Count);
+            Assert.HasCount(1, entities);
             Assert.AreEqual("SpecialName", entities.First().Name);
         }
 
@@ -130,7 +129,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var entities = await _repo.GetListAsync(spec);
 
             // Assert
-            Assert.AreEqual(1, entities.Count);
+            Assert.HasCount(1, entities);
             Assert.AreEqual(specialEntity.Id, entities.First().Id);
         }
 
@@ -158,7 +157,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var projectedList = await _repo.GetListAsync<TestEntity, TestProjection>(e => new TestProjection { Name = e.Name });
 
             // Assert
-            Assert.AreEqual(_activeEntities.Count, projectedList.Count);
+            Assert.HasCount(_activeEntities.Count, projectedList);
             Assert.IsInstanceOfType(projectedList.First(), typeof(TestProjection));
         }
 
@@ -175,7 +174,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
                 e => new TestProjection { Id = e.Id });
 
             // Assert
-            Assert.AreEqual(1, projectedList.Count);
+            Assert.HasCount(1, projectedList);
             Assert.AreEqual(specialEntity.Id, projectedList.First().Id);
         }
 
@@ -193,7 +192,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
                 e => new TestProjection { Name = e.Name });
 
             // Assert
-            Assert.AreEqual(1, projectedList.Count);
+            Assert.HasCount(1, projectedList);
             Assert.AreEqual(specialEntity.Name, projectedList.First().Name);
         }
 
@@ -219,8 +218,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var paginatedList = await _repo.GetListAsync(spec);
 
             // Assert
-            Assert.AreEqual(5, paginatedList.Items.Count);
-            Assert.AreEqual(_activeEntities.Count, paginatedList.TotalItems);
+            Assert.HasCount(5, paginatedList.Items);
+            Assert.AreEqual(_activeEntities.Count(), paginatedList.TotalItems);
             Assert.AreEqual(2, paginatedList.TotalPages);
         }
 
@@ -236,8 +235,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
                 e => new TestProjection { Id = e.Id, Name = e.Name });
 
             // Assert
-            Assert.AreEqual(5, paginatedList.Items.Count);
-            Assert.AreEqual(_activeEntities.Count, paginatedList.TotalItems);
+            Assert.HasCount(5, paginatedList.Items);
+            Assert.AreEqual(_activeEntities.Count(), paginatedList.TotalItems);
             Assert.IsInstanceOfType(paginatedList.Items.First(), typeof(TestProjection));
         }
 
@@ -264,7 +263,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var deletedList = await _repo.GetDeletedListAsync<TestEntity>();
 
             // Assert
-            Assert.AreEqual(_deletedEntities.Count, deletedList.Count);
+            Assert.HasCount(_deletedEntities.Count, deletedList);
             Assert.IsTrue(deletedList.All(e => e.IsDeleted));
         }
 
@@ -277,7 +276,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             // Assert
             Assert.IsTrue(success);
             Assert.IsNotNull(items);
-            Assert.AreEqual(_activeEntities.Count, items.Count);
+            Assert.HasCount(_activeEntities.Count, items);
         }
 
         [TestMethod]
@@ -291,8 +290,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var distinctNames = await _repo.GetDistinctByAsync<TestEntity, string>(e => e.Name);
 
             // Assert
-            Assert.AreEqual(_activeEntities.Count + 1, distinctNames.Count); // 10 initial + "DuplicateName"
-            Assert.IsTrue(distinctNames.Contains("DuplicateName"));
+            Assert.HasCount(_activeEntities.Count + 1, distinctNames); // 10 initial + "DuplicateName"
+            Assert.Contains("DuplicateName", distinctNames);
         }
 
         [TestMethod]
@@ -311,7 +310,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
 
             // Assert
             Assert.IsTrue(hasAny);
-            Assert.AreEqual(_activeEntities.Count, items.Count);
+            Assert.HasCount(_activeEntities.Count, items);
         }
 
         [TestMethod]
@@ -326,7 +325,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
 
             // Assert
             Assert.IsFalse(hasAny);
-            Assert.AreEqual(0, items.Count);
+            Assert.IsEmpty(items);
         }
 
         #endregion
@@ -334,7 +333,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
 
     public class TestSpecification : Specification<TestEntity>
     {
-        public TestSpecification(Guid? id = null, string description = null)
+        public TestSpecification(Guid? id = null, string? description = null)
         {
             if (id.HasValue)
             {

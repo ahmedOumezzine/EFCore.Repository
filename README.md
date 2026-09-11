@@ -83,4 +83,4 @@ Ce projet est publié sous licence MIT — libre d’utilisation, modification e
 
 ## Compatibilité
 
-Cette version cible .NET 9 et EF Core 9. SQLite en mémoire est utilisé pour les tests fonctionnels. La validation SQL Server et l’atomicité concurrente de l’upsert restent des limitations documentées.
+Cette version 2.0.0 cible .NET 9 et EF Core 9. SQLite en mémoire est utilisé pour les tests fonctionnels. La validation SQL Server et l’atomicité concurrente de l’upsert restent des limitations documentées.

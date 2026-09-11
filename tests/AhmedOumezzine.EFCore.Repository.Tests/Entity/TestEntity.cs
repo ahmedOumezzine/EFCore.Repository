@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Entities;
+using AhmedOumezzine.EFCore.Repository.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

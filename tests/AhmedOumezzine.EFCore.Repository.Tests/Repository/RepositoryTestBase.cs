@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Entities;
+using AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using Microsoft.Data.Sqlite;
@@ -15,9 +15,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
     public abstract class RepositoryTestBase<TEntity>
         where TEntity : BaseEntity, new()
     {
-        private static SqliteConnection? _connection;
-        protected static DbContextOptions<TestDbContext>? _options;
-
+        private static SqliteConnection? _connection = null!;
+        protected static DbContextOptions<TestDbContext>? _options = null!;
         /// <summary>
         /// À appeler dans [ClassInitialize] de chaque classe de test concrète.
         /// </summary>
@@ -111,11 +110,11 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             {
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
                 // Ajoute une contrainte CHECK pour SQLite
-                entity.HasCheckConstraint("CK_TestEntity_Name_Length", "LENGTH(Name) <= 100");
+                entity.ToTable(t => t.HasCheckConstraint("CK_TestEntity_Name_Length", "LENGTH(Name) <= 100"));
                 entity.Property(e => e.Description).HasMaxLength(500);
 
                 // Ajoute une contrainte CHECK pour SQLite
-                entity.HasCheckConstraint("CK_TestEntity_Description_Length", "LENGTH(Description) <= 500");
+                entity.ToTable(t => t.HasCheckConstraint("CK_TestEntity_Description_Length", "LENGTH(Description) <= 500"));
             });
         }
     }

@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Repository;
+using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Repository.Tests;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using AutoFixture;
@@ -11,8 +11,8 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
     public class RawSqlPerformanceTests : RepositoryTestBase<TestEntity>
     {
         private Fixture _fixture = new();
-        private Repository<TestDbContext> _repo;
-        private TestDbContext _dbContext;
+        private Repository<TestDbContext> _repo = null!;
+        private TestDbContext _dbContext = null!;
         private const int LARGE_DATA_COUNT = 50000;
 
         [TestInitialize]
@@ -57,7 +57,7 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
             stopwatch.Stop();
 
             // Assert
-            Assert.AreEqual(LARGE_DATA_COUNT, entities.Count);
+            Assert.HasCount(LARGE_DATA_COUNT, entities);
             LogPerformance("GetFromRawSqlAsync (Full Table Scan)", stopwatch.ElapsedMilliseconds);
         }
 

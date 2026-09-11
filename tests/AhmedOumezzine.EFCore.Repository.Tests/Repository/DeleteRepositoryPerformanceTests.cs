@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Repository;
+using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Repository.Tests;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using System.Diagnostics;
@@ -9,7 +9,7 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
     [TestCategory("Performance")]
     public class DeleteRepositoryPerformanceTests : RepositoryTestBase<TestEntity>
     {
-        private Repository<TestDbContext> _repo;
+        private Repository<TestDbContext> _repo = null!;
         private const int LARGE_DATA_COUNT = 5000;
         private const int VERY_LARGE_DATA_COUNT = 50000;
 

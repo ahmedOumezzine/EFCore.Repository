@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Repository;
+using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Repository.Specification;
 using AhmedOumezzine.EFCore.Repository.Tests;
 using AhmedOumezzine.EFCore.Tests.Entity;
@@ -10,11 +10,10 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
     [TestCategory("Performance")]
     public class GetListRepositoryPerformanceTests : RepositoryTestBase<TestEntity>
     {
-        private Repository<TestDbContext> _repo;
+        private Repository<TestDbContext> _repo = null!;
         private const int LARGE_DATA_COUNT = 50000;
         private string _targetName = "TargetEntity";
-        private TestEntity _targetEntity;
-
+        private TestEntity _targetEntity = null!;
         [TestInitialize]
         public async Task TestInitialize()
         {
@@ -62,7 +61,7 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
             stopwatch.Stop();
 
             // Assert
-            Assert.AreEqual(LARGE_DATA_COUNT + 1, list.Count);
+            Assert.HasCount(LARGE_DATA_COUNT + 1, list);
             LogPerformance("GetListAsync (No Condition)", stopwatch.ElapsedMilliseconds, list.Count);
         }
 
@@ -75,7 +74,7 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
             stopwatch.Stop();
 
             // Assert
-            Assert.AreEqual(1, list.Count);
+            Assert.HasCount(1, list);
             LogPerformance("GetListAsync (With Condition)", stopwatch.ElapsedMilliseconds, list.Count);
         }
 
@@ -91,7 +90,7 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
             stopwatch.Stop();
 
             // Assert
-            Assert.AreEqual(1, list.Count);
+            Assert.HasCount(1, list);
             LogPerformance("GetListAsync (With Specification)", stopwatch.ElapsedMilliseconds, list.Count);
         }
 
@@ -104,7 +103,7 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
             stopwatch.Stop();
 
             // Assert
-            Assert.AreEqual(LARGE_DATA_COUNT + 1, projectedList.Count);
+            Assert.HasCount(LARGE_DATA_COUNT + 1, projectedList);
             LogPerformance("GetListAsync (With Projection)", stopwatch.ElapsedMilliseconds, projectedList.Count);
         }
 
@@ -118,7 +117,7 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
             stopwatch.Stop();
 
             // Assert
-            Assert.AreEqual(100, paginatedList.Items.Count);
+            Assert.HasCount(100, paginatedList.Items);
             LogPerformance("GetListAsync (With Pagination)", stopwatch.ElapsedMilliseconds, paginatedList.Items.Count);
         }
 
@@ -139,7 +138,7 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
             stopwatch.Stop();
 
             // Assert
-            Assert.AreEqual(1000, list.Count);
+            Assert.HasCount(1000, list);
             LogPerformance("GetDeletedListAsync", stopwatch.ElapsedMilliseconds, list.Count);
         }
 

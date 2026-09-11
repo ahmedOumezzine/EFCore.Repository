@@ -10,10 +10,9 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
     public class UpdateRepositoryTests : RepositoryTestBase<TestEntity>
     {
         private Fixture _fixture = new();
-        private Repository<TestDbContext> _repo;
-        private TestEntity _activeEntity;
-        private TestEntity _deletedEntity;
-
+        private Repository<TestDbContext> _repo = null!;
+        private TestEntity _activeEntity = null!;
+        private TestEntity _deletedEntity = null!;
         [TestInitialize]
         public async Task TestInitialize()
         {
@@ -39,7 +38,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         {
             // Arrange
             var entityToUpdate = await _repo.GetByIdAsync<TestEntity>(_activeEntity.Id);
-            entityToUpdate.Name = "Updated Name Sync";
+            entityToUpdate!.Name = "Updated Name Sync";
 
             // Act
             _repo.Update(entityToUpdate);
@@ -47,8 +46,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
 
             // Assert
             using var context = CreateDbContext();
-            var stored = await context.TestEntities.AsNoTracking().SingleAsync(e => e.Id == entityToUpdate.Id);
-            Assert.AreEqual("Updated Name Sync", stored.Name);
+            var stored = await context.TestEntities.AsNoTracking().SingleAsync(e => e.Id == entityToUpdate!.Id);
+            Assert.AreEqual("Updated Name Sync", stored!.Name);
         }
 
         [TestMethod]
@@ -65,21 +64,21 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             // Assert
             using var context = CreateDbContext();
             var stored = await context.TestEntities.AsNoTracking().Where(e => entitiesToUpdate.Select(x => x.Id).Contains(e.Id)).ToListAsync();
-            Assert.IsTrue(stored.All(e => e.Name == "Updated Name Batch Sync"));
+            Assert.IsTrue(stored!.All(e => e.Name == "Updated Name Batch Sync"));
         }
 
         [TestMethod]
         public void Update_WithNullEntity_ShouldThrowArgumentNullException()
         {
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => _repo.Update<TestEntity>(entity:null));
+            Assert.Throws<ArgumentNullException>(() => _repo.Update<TestEntity>(entity:null!));
         }
 
         [TestMethod]
         public void Update_WithNullEntitiesList_ShouldThrowArgumentNullException()
         {
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => _repo.Update<TestEntity>(entity: null));
+            Assert.Throws<ArgumentNullException>(() => _repo.Update<TestEntity>(entity: null!));
         }
 
         [TestMethod]
@@ -101,7 +100,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         {
             // Arrange
             var entityToUpdate = await _repo.GetByIdAsync<TestEntity>(_activeEntity.Id);
-            entityToUpdate.Name = "Updated Name Async";
+            entityToUpdate!.Name = "Updated Name Async";
 
             // Act
             var affectedRows = await _repo.UpdateAsync(entityToUpdate);
@@ -110,8 +109,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             Assert.AreEqual(1, affectedRows);
             using var verifyContext = CreateDbContext();
             var updatedEntity = await verifyContext.TestEntities.AsNoTracking().SingleAsync(e => e.Id == _activeEntity.Id);
-            Assert.AreEqual("Updated Name Async", updatedEntity.Name);
-            Assert.IsNotNull(updatedEntity.LastModifiedOnUtc);
+            Assert.AreEqual("Updated Name Async", updatedEntity!.Name);
+            Assert.IsNotNull(updatedEntity!.LastModifiedOnUtc);
         }
 
         [TestMethod]
@@ -125,7 +124,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var affectedRows = await _repo.UpdateAsync(entitiesToUpdate);
 
             // Assert
-            Assert.AreEqual(entitiesToUpdate.Count, affectedRows);
+            Assert.AreEqual(entitiesToUpdate.Count(), affectedRows);
         }
 
         #endregion
@@ -144,8 +143,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
 
             using var context = CreateDbContext();
             var stored = await context.TestEntities.AsNoTracking().SingleAsync(e => e.Id == original.Id);
-            Assert.AreEqual("After", stored.Name);
-            Assert.AreEqual("Keep me", stored.Description);
+            Assert.AreEqual("After", stored!.Name);
+            Assert.AreEqual("Keep me", stored!.Description);
         }
 
         [TestMethod]
@@ -153,8 +152,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         {
             // Arrange
             var stored = await _repo.GetByIdAsync<TestEntity>(_activeEntity.Id);
-            var originalDescription = stored.Description;
-            var entityToUpdate = new TestEntity { Id = stored.Id, Name = "Partial Update", Description = "This should not be updated." };
+            var originalDescription = stored!.Description;
+            var entityToUpdate = new TestEntity { Id = stored!.Id, Name = "Partial Update", Description = "This should not be updated." };
 
             // Act
             var affectedRows = await _repo.UpdateOnlyAsync(entityToUpdate, new[] { nameof(TestEntity.Name) });
@@ -163,8 +162,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             Assert.AreEqual(1, affectedRows);
             using var verifyContext2 = CreateDbContext();
             var updatedEntity = await verifyContext2.TestEntities.AsNoTracking().SingleAsync(e => e.Id == _activeEntity.Id);
-            Assert.AreEqual("Partial Update", updatedEntity.Name);
-            Assert.AreEqual(originalDescription, updatedEntity.Description);
+            Assert.AreEqual("Partial Update", updatedEntity!.Name);
+            Assert.AreEqual(originalDescription, updatedEntity!.Description);
         }
 
         [TestMethod]
@@ -200,7 +199,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         {
             // Arrange
             var entityToUpdate = await _repo.GetByIdAsync<TestEntity>(_activeEntity.Id);
-            entityToUpdate.Name = "Updated If Exists";
+            entityToUpdate!.Name = "Updated If Exists";
 
             // Act
             var result = await _repo.UpdateIfExistsAsync(entityToUpdate);
@@ -208,7 +207,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             // Assert
             Assert.IsTrue(result);
             var updatedEntity = await _repo.GetByIdAsync<TestEntity>(_activeEntity.Id);
-            Assert.AreEqual("Updated If Exists", updatedEntity.Name);
+            Assert.AreEqual("Updated If Exists", updatedEntity!.Name);
         }
 
         [TestMethod]
@@ -256,7 +255,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         {
             // Arrange
             var entityToUpdate = await _repo.GetByIdAsync<TestEntity>(_activeEntity.Id);
-            entityToUpdate.Name = "Try Update";
+            entityToUpdate!.Name = "Try Update";
 
             // Act
             var result = await _repo.TryUpdateAsync(entityToUpdate);
@@ -264,7 +263,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             // Assert
             Assert.IsTrue(result);
             var updatedEntity = await _repo.GetByIdAsync<TestEntity>(_activeEntity.Id);
-            Assert.AreEqual("Try Update", updatedEntity.Name);
+            Assert.AreEqual("Try Update", updatedEntity!.Name);
         }
 
         [TestMethod]
@@ -311,7 +310,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             // Assert
             Assert.AreEqual(3, affectedRows);
             var updatedEntities = await _repo.GetListAsync<TestEntity>(e => e.Description == "Updated by Bulk Update");
-            Assert.AreEqual(3, updatedEntities.Count);
+            Assert.HasCount(3, updatedEntities);
         }
 
         [TestMethod]
@@ -330,7 +329,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             // Assert
             using var fresh = CreateDbContext();
             var updatedEntity = await fresh.TestEntities.AsNoTracking().SingleAsync(e => e.Id == entitiesToUpdate.First().Id);
-            Assert.IsTrue(updatedEntity.LastModifiedOnUtc >= originalLastModified);
+            Assert.IsTrue(updatedEntity!.LastModifiedOnUtc >= originalLastModified);
         }
 
         [TestMethod]

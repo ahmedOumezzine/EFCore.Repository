@@ -6,7 +6,9 @@
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.0.3</Version>
+    <Version>2.0.0</Version>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
     <PackageId>AhmedOumezzine.EFCore.Repository</PackageId>
     <Authors>Ahmed Oumezzine</Authors>
     <Description>Generic Entity Framework Core 9 repository with soft-delete, specifications, pagination, bulk, SQL and transaction support.</Description>
@@ -15,6 +17,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/ahmedOumezzine/EFCore.Repository</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/ahmedOumezzine/EFCore.Repository</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>

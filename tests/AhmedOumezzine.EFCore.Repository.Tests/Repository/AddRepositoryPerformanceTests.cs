@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Repository;
+using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using global::AhmedOumezzine.EFCore.Repository.Tests;
 using System.Diagnostics;
@@ -9,7 +9,7 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
     [TestCategory("Performance")]
     public class AddRepositoryPerformanceTests : RepositoryTestBase<TestEntity>
     {
-        private Repository<TestDbContext> _repo;
+        private Repository<TestDbContext> _repo = null!;
         private const int SMALL_BATCH_SIZE = 100;
         private const int LARGE_BATCH_SIZE = 5000;
         private const int VERY_LARGE_BATCH_SIZE = 50000;

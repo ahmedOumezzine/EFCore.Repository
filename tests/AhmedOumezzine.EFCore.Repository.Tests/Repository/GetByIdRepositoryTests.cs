@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Repository;
+using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +9,10 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
     public class GetByIdRepositoryTests : RepositoryTestBase<TestEntity>
     {
         private Fixture _fixture = new();
-        private Repository<TestDbContext> _repo;
-        private TestEntity _activeEntity;
-        private TestEntity _deletedEntity;
-        private ParentEntity _parentEntity;
-
+        private Repository<TestDbContext> _repo = null!;
+        private TestEntity _activeEntity = null!;
+        private TestEntity _deletedEntity = null!;
+        private ParentEntity _parentEntity = null!;
         [TestInitialize]
         public async Task TestInitialize()
         {
@@ -82,7 +81,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             // Assert
             Assert.IsNotNull(parent);
             Assert.IsNotNull(parent.Children);
-            Assert.AreEqual(2, parent.Children.Count);
+            Assert.HasCount(2, parent.Children);
         }
 
         [TestMethod]
@@ -118,7 +117,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             Assert.IsNotNull(parent);
             Assert.AreEqual(EntityState.Detached, context.Entry(parent).State);
             Assert.IsNotNull(parent.Children);
-            Assert.AreEqual(2, parent.Children.Count);
+            Assert.HasCount(2, parent.Children);
         }
 
         [TestMethod]
@@ -191,7 +190,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var entities = await _repo.GetByIdsAsync<TestEntity>(ids);
 
             // Assert
-            Assert.AreEqual(1, entities.Count); // Should only return the active one
+            Assert.HasCount(1, entities); // Should only return the active one
             Assert.AreEqual(_activeEntity.Id, entities.First().Id);
         }
 
@@ -203,7 +202,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
 
             // Assert
             Assert.IsNotNull(entities);
-            Assert.AreEqual(0, entities.Count);
+            Assert.IsEmpty(entities);
         }
 
         [TestMethod]

@@ -38,7 +38,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
 
             // Assert
             Assert.IsNotNull(keys);
-            Assert.AreEqual(1, keys.Length);
+            Assert.HasCount(1, keys);
             Assert.AreEqual(entity.Id, keys[0]);
 
             Assert.AreNotEqual(Guid.Empty, insertedEntity.Id);
@@ -156,8 +156,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             await repo.InsertWithAuditAsync(entity, "testuser");
 
             // Assert
-            Assert.AreEqual(1, context.TestEntities.Count());
-            Assert.AreEqual(1, context.AuditLogs.Count());
+            Assert.HasCount(1, context.TestEntities);
+            Assert.HasCount(1, context.AuditLogs);
 
             var audit = context.AuditLogs.First();
             Assert.AreEqual("INSERT", audit.Action);
@@ -245,7 +245,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
 
             // Vérifier qu'aucune entité n'a été insérée
             using var context = CreateDbContext();
-            Assert.AreEqual(0, context.TestEntities.Count());
+            Assert.HasCount(0, context.TestEntities);
         }
 
         #endregion
@@ -337,7 +337,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         {
             var repo = CreateRepository();
             await Assert.ThrowsAsync<ArgumentNullException>(() =>
-                 repo.InsertWithTransactionAsync<TestEntity>(null));
+                 repo.InsertWithTransactionAsync<TestEntity>(null!));
         }
 
         [TestMethod]
@@ -360,7 +360,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             {
                 // Vérifier que rien n'a été inséré
                 using var context = CreateDbContext();
-                Assert.AreEqual(0, context.TestEntities.Count());
+                Assert.HasCount(0, context.TestEntities);
             }
         }
         #endregion
@@ -376,7 +376,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             await repo.InsertManyAsync(entities, batchSize: 500);
 
             using var context = CreateDbContext();
-            Assert.AreEqual(1200, context.TestEntities.Count());
+            Assert.HasCount(1200, context.TestEntities);
         }
 
         [TestMethod]

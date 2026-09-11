@@ -10,11 +10,10 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
     public class GetRepositoryTests : RepositoryTestBase<TestEntity>
     {
         private Fixture _fixture = new();
-        private Repository<TestDbContext> _repo;
-        private TestEntity _activeEntity;
-        private TestEntity _deletedEntity;
-        private ParentEntity _parentEntity;
-
+        private Repository<TestDbContext> _repo = null!;
+        private TestEntity _activeEntity = null!;
+        private TestEntity _deletedEntity = null!;
+        private ParentEntity _parentEntity = null!;
         [TestInitialize]
         public async Task TestInitialize()
         {
@@ -65,7 +64,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         public async Task GetAsync_WithNullCondition_ShouldThrowArgumentNullException()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repo.GetAsync<TestEntity>(condition:null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repo.GetAsync<TestEntity>(condition:null!));
         }
 
         [TestMethod]
@@ -91,7 +90,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             // Assert
             Assert.IsNotNull(parent);
             Assert.IsNotNull(parent.Children);
-            Assert.AreEqual(1, parent.Children.Count);
+            Assert.HasCount(1, parent.Children);
         }
 
         [TestMethod]
@@ -107,7 +106,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             // Assert
             Assert.IsNotNull(parent);
             Assert.AreEqual(EntityState.Detached, context.Entry(parent).State);
-            Assert.AreEqual(1, parent.Children.Count);
+            Assert.HasCount(1, parent.Children);
         }
 
         #endregion
@@ -145,7 +144,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         public async Task GetAsync_WithNullSpecification_ShouldThrowArgumentNullException()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repo.GetAsync<TestEntity>(condition:null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repo.GetAsync<TestEntity>(condition:null!));
         }
 
         [TestMethod]
@@ -185,7 +184,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         public async Task GetAsync_WithProjection_WithNullCondition_ShouldThrow()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repo.GetAsync<TestEntity, TestProjection>(condition:null, e => new TestProjection()));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repo.GetAsync<TestEntity, TestProjection>(condition:null!, e => new TestProjection()));
         }
 
         [TestMethod]
@@ -215,7 +214,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         public async Task GetAsync_WithNullSpecificationAndProjection_ShouldThrow()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repo.GetAsync<TestEntity, TestProjection>(condition:null, e => new TestProjection()));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repo.GetAsync<TestEntity, TestProjection>(condition:null!, e => new TestProjection()));
         }
 
         [TestMethod]

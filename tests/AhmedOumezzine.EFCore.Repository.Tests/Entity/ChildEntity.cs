@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Entities;
+using AhmedOumezzine.EFCore.Repository.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +9,8 @@ namespace AhmedOumezzine.EFCore.Tests.Entity
 {
     public class ChildEntity : BaseEntity
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public Guid ParentId { get; set; }
-        public ParentEntity Parent { get; set; }
+        public ParentEntity Parent { get; set; } = null!;
     }
 }

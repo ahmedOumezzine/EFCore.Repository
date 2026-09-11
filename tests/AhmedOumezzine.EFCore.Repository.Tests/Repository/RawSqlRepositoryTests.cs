@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Repository;
+using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using AutoFixture;
 using Microsoft.Data.Sqlite;
@@ -11,9 +11,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
     public class RawSqlRepositoryTests : RepositoryTestBase<TestEntity>
     {
         private Fixture _fixture = new();
-        private Repository<TestDbContext> _repo;
-        private TestDbContext _dbContext;
-
+        private Repository<TestDbContext> _repo = null!;
+        private TestDbContext _dbContext = null!;
         [TestInitialize]
         public async Task TestInitialize()
         {
@@ -67,9 +66,9 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var affectedRows = await _repo.ExecuteSqlCommandAsync(sql);
 
             // Assert
-            Assert.IsTrue(affectedRows > 0);
+            Assert.IsGreaterThan(0, affectedRows);
             var updatedEntity = await CreateDbContext().TestEntities.AsNoTracking().FirstOrDefaultAsync(e => e.Id == entity.Id);
-            Assert.AreEqual("Updated Name", updatedEntity.Name);
+            Assert.AreEqual("Updated Name", updatedEntity!.Name);
         }
 
         [TestMethod]
@@ -100,7 +99,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var entities = await _repo.GetFromRawSqlAsync<TestEntity>(sql);
 
             // Assert
-            Assert.AreEqual(5, entities.Count);
+            Assert.HasCount(5, entities);
         }
 
         [TestMethod]
@@ -115,7 +114,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var entities = await _repo.GetFromRawSqlAsync<TestEntity>(sql, parameters);
 
             // Assert
-            Assert.AreEqual(1, entities.Count);
+            Assert.HasCount(1, entities);
             Assert.AreEqual(targetEntity.Id, entities.First().Id);
         }
 
@@ -257,9 +256,9 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var affectedRows = await _repo.ExecuteInTransactionAsync(sql);
 
             // Assert
-            Assert.IsTrue(affectedRows > 0);
+            Assert.IsGreaterThan(0, affectedRows);
             var updatedEntity = await CreateDbContext().TestEntities.AsNoTracking().FirstOrDefaultAsync(e => e.Id == entity.Id);
-            Assert.AreEqual("Transaction Update", updatedEntity.Name);
+            Assert.AreEqual("Transaction Update", updatedEntity!.Name);
         }
 
         [TestMethod]
@@ -275,7 +274,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
 
             // Re-fetch entity to confirm rollback
             var rolledBackEntity = await _dbContext.TestEntities.AsNoTracking().FirstOrDefaultAsync(e => e.Id == entity.Id);
-            Assert.AreEqual(originalName, rolledBackEntity.Name);
+            Assert.AreEqual(originalName, rolledBackEntity!.Name);
         }
 
         #endregion

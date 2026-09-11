@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Repository;
+using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Repository.Tests;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using System.Diagnostics;
@@ -9,9 +9,9 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
     [TestCategory("Performance")]
     public class ExistsCountPerformanceTests : RepositoryTestBase<TestEntity>
     {
-        private Repository<TestDbContext> _repo;
+        private Repository<TestDbContext> _repo = null!;
         private const int LARGE_DATA_COUNT = 50000;
-        private Guid _existingId;
+        private Guid _existingId = Guid.Empty;
         private string _existingName = "PerformanceTestName";
 
         [TestInitialize]
@@ -45,7 +45,7 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
             var deletedEntity = await _repo.GetListAsync<TestEntity>();
             if (deletedEntity != null)
             {
-                await _repo.DeleteAsync(deletedEntity.FirstOrDefault());
+                await _repo.DeleteAsync(deletedEntity.FirstOrDefault()!);
             }
         }
 
@@ -159,7 +159,7 @@ namespace AhmedOumezzine.EFCore.Performance.Tests
             var stopwatch = Stopwatch.StartNew();
 
             // Act
-            var count = await _repo.CountAsync<TestEntity>(e => e.Description.Contains("Performance"));
+            var count = await _repo.CountAsync<TestEntity>(e => e!.Description!.Contains("Performance"));
             stopwatch.Stop();
 
             // Assert

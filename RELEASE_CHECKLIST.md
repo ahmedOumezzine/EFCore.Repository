@@ -1,14 +1,22 @@
 # Release checklist
 
-- [x] Version and target framework validated (.NET 9 / EF Core 9)
-- [x] Functional SQLite tests green (173/173)
-- [x] Release build green
-- [x] NuGet package and symbols generated
-- [x] README and MIT license included
-- [x] SourceLink configured
-- [x] GitHub Actions workflow added
-- [x] Consumer application validation
-- [ ] SQL Server provider validation
-- [ ] Tag and GitHub release
-- [ ] Explicit NuGet push approval
-
+- [x] version = 2.0.0
+- [x] target net9.0
+- [x] EF Core 9.0.9
+- [x] functional 173/173
+- [x] build
+- [x] pack
+- [x] nupkg
+- [x] snupkg
+- [x] README
+- [x] changelog
+- [x] release notes
+- [x] license
+- [x] SourceLink
+- [x] consumer validation
+- [x] git diff --check
+- [ ] GitHub Actions post-version green
+- [ ] tag v2.0.0 created
+- [ ] GitHub Release published
+- [ ] NuGet push completed
+- [ ] post-publish validation

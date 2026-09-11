@@ -9,8 +9,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
     public class DeleteRepositoryTests : RepositoryTestBase<TestEntity>
     {
         private Fixture _fixture = new();
-        private Repository<TestDbContext> _repo;
-
+        private Repository<TestDbContext> _repo = null!;
         [TestInitialize]
         public void TestInitialize()
         {
@@ -183,7 +182,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             // Assert
             Assert.AreEqual(2, rowsAffected);
             var remaining = CreateDbContext().TestEntities.IgnoreQueryFilters().Where(e => !e.IsDeleted).ToList();
-            Assert.AreEqual(1, remaining.Count);
+            Assert.HasCount(1, remaining);
             Assert.AreEqual("Keep Me", remaining.First().Name);
         }
 
@@ -225,7 +224,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             // Assert
             Assert.AreEqual(1, rowsAffected);
             var remaining = context.TestEntities.IgnoreQueryFilters().ToList();
-            Assert.AreEqual(1, remaining.Count);
+            Assert.HasCount(1, remaining);
             Assert.AreEqual("New", remaining.First().Name);
         }
 

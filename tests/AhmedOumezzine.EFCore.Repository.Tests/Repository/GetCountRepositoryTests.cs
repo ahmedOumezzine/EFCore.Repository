@@ -10,14 +10,13 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
     public class CountRepositoryTests : RepositoryTestBase<TestEntity>
     {
         private Fixture _fixture = new();
-        private Repository<TestDbContext> _repo;
+        private Repository<TestDbContext> _repo = null!;
         private const int ACTIVE_COUNT = 10;
         private const int DELETED_COUNT = 5;
 
         // Déclaration des champs de classe
-        private List<TestEntity> _activeEntities;
-        private List<TestEntity> _deletedEntities;
-
+        private List<TestEntity> _activeEntities = null!;
+        private List<TestEntity> _deletedEntities = null!;
         [TestInitialize]
         public async Task TestInitialize()
         {
