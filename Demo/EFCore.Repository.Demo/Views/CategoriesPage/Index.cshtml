@@ -1,0 +1,2 @@
+@model IEnumerable<EFCore.Repository.Demo.Entities.Category>
+@{Layout="_Layout";}<div class="d-flex justify-content-between align-items-center mb-3"><h1>Categories</h1><a class="btn btn-primary" href="/api/categories">API JSON</a></div><div class="row g-3">@foreach(var c in Model){<div class="col-md-4"><div class="card p-3"><h4>@c.Name</h4><p>@c.Description</p><span class="badge bg-info">Category</span></div></div>}</div>
