@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace AhmedOumezzine.EFCore.Repository.Specification
 {
@@ -10,10 +10,12 @@ namespace AhmedOumezzine.EFCore.Repository.Specification
         where T : class
     {
 
+        /// <summary>Creates an empty pagination specification.</summary>
         public PaginationSpecification()
         {
         }
 
+        /// <summary>Creates a pagination specification with one-based page index and page size.</summary>
         public PaginationSpecification(int pageIndex, int pageSize)
         {
             PageIndex = pageIndex;

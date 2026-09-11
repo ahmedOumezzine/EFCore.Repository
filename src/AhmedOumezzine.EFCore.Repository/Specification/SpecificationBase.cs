@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
 
 namespace AhmedOumezzine.EFCore.Repository.Specification
@@ -18,12 +18,12 @@ namespace AhmedOumezzine.EFCore.Repository.Specification
         /// <summary>
         /// Gets or sets the navigation entities to be eager loaded with EF Core query.
         /// </summary>
-        public Func<IQueryable<T>, IIncludableQueryable<T, object>> Includes { get; set; }
+        public Func<IQueryable<T>, IIncludableQueryable<T, object>>? Includes { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="Func{T, TResult}"/> to order by your query.
         /// </summary>
-        public Func<IQueryable<T>, IOrderedQueryable<T>> OrderBy { get; set; }
+        public Func<IQueryable<T>, IOrderedQueryable<T>>? OrderBy { get; set; }
 
         /// <summary>
         /// Gets or sets dynamic order by option in string format.

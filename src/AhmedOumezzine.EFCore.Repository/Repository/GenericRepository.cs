@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Entities;
+using AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -20,6 +20,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// Initializes a new instance of the <see cref="Repository{TDbContext}"/> class.
         /// </summary>
         /// <param name="dbContext">The database context. Cannot be null.</param>
+        /// <inheritdoc />
         public Repository(TDbContext dbContext)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
@@ -94,6 +95,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             entry.Property(nameof(BaseEntity.LastModifiedOnUtc)).IsModified = true;
         }
 
+        /// <inheritdoc />
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
         {
             int count = await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

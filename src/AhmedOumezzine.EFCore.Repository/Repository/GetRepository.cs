@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Entities;
+using AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Interface;
 using AhmedOumezzine.EFCore.Repository.Specification;
 using Microsoft.EntityFrameworkCore;
@@ -17,12 +17,14 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     {
         #region GetAsync - By Condition
 
+        /// <inheritdoc />
         public Task<TEntity?> GetAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
             CancellationToken ct = default)
             where TEntity : BaseEntity
             => GetAsync(condition, includes: null, asNoTracking: false, ct);
 
+        /// <inheritdoc />
         public Task<TEntity?> GetAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
             bool asNoTracking,
@@ -30,16 +32,18 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             where TEntity : BaseEntity
             => GetAsync(condition, includes: null, asNoTracking: asNoTracking, ct);
 
+        /// <inheritdoc />
         public Task<TEntity?> GetAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
-            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes,
             CancellationToken ct = default)
             where TEntity : BaseEntity
             => GetAsync(condition, includes, asNoTracking: false, ct);
 
+        /// <inheritdoc />
         public async Task<TEntity?> GetAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
-            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes,
             bool asNoTracking,
             CancellationToken ct = default)
             where TEntity : BaseEntity
@@ -62,12 +66,14 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region GetAsync - By Specification
 
+        /// <inheritdoc />
         public Task<TEntity?> GetAsync<TEntity>(
             Specification<TEntity> specification,
             CancellationToken ct = default)
             where TEntity : BaseEntity
             => GetAsync(specification, asNoTracking: false, ct);
 
+        /// <inheritdoc />
         public async Task<TEntity?> GetAsync<TEntity>(
             Specification<TEntity> specification,
             bool asNoTracking,
@@ -90,6 +96,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region GetAsync - Projection
 
+        /// <inheritdoc />
         public async Task<TProjected?> GetAsync<TEntity, TProjected>(
             Expression<Func<TEntity, bool>> condition,
             Expression<Func<TEntity, TProjected>> selector,
@@ -107,6 +114,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .FirstOrDefaultAsync(ct);
         }
 
+        /// <inheritdoc />
         public async Task<TProjected?> GetAsync<TEntity, TProjected>(
             Specification<TEntity> specification,
             Expression<Func<TEntity, TProjected>> selector,
@@ -127,6 +135,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region Safe & Utility Methods
 
+        /// <inheritdoc />
         public async Task<(bool Success, TEntity? Entity)> TryGetAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
             CancellationToken ct = default)
@@ -150,6 +159,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Alias for semantic clarity.
         /// </summary>
+        /// <inheritdoc />
         public Task<TEntity?> GetAsyncOrDefault<TEntity>(
             Expression<Func<TEntity, bool>> condition,
             CancellationToken ct = default)
@@ -159,6 +169,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Alias for semantic clarity.
         /// </summary>
+        /// <inheritdoc />
         public Task<TEntity?> FindAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
             CancellationToken ct = default)
@@ -168,6 +179,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Throws if entity not found.
         /// </summary>
+        /// <inheritdoc />
         public async Task<TEntity> GetFirstOrThrowAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
             string? errorMessage = null,
@@ -183,6 +195,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Checks existence and returns entity in one call.
         /// </summary>
+        /// <inheritdoc />
         public async Task<(bool Exists, TEntity? Entity)> ExistsAndFetchAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
             CancellationToken ct = default)
@@ -195,7 +208,8 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Retrieves a single property value.
         /// </summary>
-        public async Task<TProperty> GetOnlyAsync<TEntity, TProperty>(
+        /// <inheritdoc />
+        public async Task<TProperty?> GetOnlyAsync<TEntity, TProperty>(
             Expression<Func<TEntity, bool>> condition,
             Expression<Func<TEntity, TProperty>> propertySelector,
             CancellationToken ct = default)

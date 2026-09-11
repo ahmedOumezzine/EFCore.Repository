@@ -1,4 +1,4 @@
-﻿namespace AhmedOumezzine.EFCore.Repository.Specification
+namespace AhmedOumezzine.EFCore.Repository.Specification
 {
     /// <summary>
     /// The object contains pagination info and items.
@@ -53,6 +53,6 @@
         /// <summary>
         /// Gets the items of the current page.
         /// </summary>
-        public List<T> Items { get; }
+        public List<T> Items { get; } = new();
     }
 }

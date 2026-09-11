@@ -1,6 +1,7 @@
 using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using AutoFixture;
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace AhmedOumezzine.EFCore.Repository.Tests
@@ -270,15 +271,17 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         public async Task CountByDateRangeAsync_ShouldReturnCorrectCount()
         {
             // Arrange
-            var start = DateTime.UtcNow.AddDays(-10);
-            var end = DateTime.UtcNow.AddDays(-5);
+            var now = new DateTime(2026, 1, 15, 12, 0, 0, DateTimeKind.Utc);
+            var start = now.AddDays(-10);
+            var end = now;
 
             await using var context = CreateDbContext();
+            await context.TestEntities.ExecuteDeleteAsync();
             await context.TestEntities.AddRangeAsync(new[]
             {
-                new TestEntity { CreatedOnUtc = DateTime.UtcNow.AddDays(-8) },
-                new TestEntity { CreatedOnUtc = DateTime.UtcNow.AddDays(-6) },
-                new TestEntity { CreatedOnUtc = DateTime.UtcNow.AddDays(-12) } // Outside range
+                new TestEntity { CreatedOnUtc = now.AddDays(-5) },
+                new TestEntity { CreatedOnUtc = now.AddDays(-3) },
+                new TestEntity { CreatedOnUtc = now.AddDays(-20) } // Outside range
             });
             await context.SaveChangesAsync();
 

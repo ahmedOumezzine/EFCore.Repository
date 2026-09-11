@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Specification;
+using AhmedOumezzine.EFCore.Repository.Specification;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -50,7 +50,7 @@ namespace AhmedOumezzine.EFCore.Repository.Extensions
             {
                 skip = checked((pageIndex - 1) * pageSize);
             }
-            catch (OverflowException ex)
+            catch (OverflowException)
             {
                 throw new ArgumentOutOfRangeException(nameof(pageIndex), "The requested page offset is too large.");
             }

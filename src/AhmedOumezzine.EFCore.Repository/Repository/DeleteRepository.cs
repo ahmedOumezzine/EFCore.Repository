@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Entities;
+using AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -9,7 +9,6 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     /// Partial implementation of the generic repository for deleting entities.
     /// Supports soft delete, hard delete, conditional operations, bulk actions, and restore.
     /// </summary>
-    /// <typeparam name="TDbContext">The type of the database context.</typeparam>
     public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
@@ -18,6 +17,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Marks an entity as deleted (soft delete). Does NOT save changes.
         /// </summary>
+        /// <inheritdoc />
         public void Remove<TEntity>(TEntity entity) where TEntity : BaseEntity
         {
             MarkAsDeleted(entity);
@@ -27,6 +27,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Marks a collection of entities as deleted (soft delete). Does NOT save changes.
         /// </summary>
+        /// <inheritdoc />
         public void Remove<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity
         {
             MarkAsDeleted(entities);
@@ -37,6 +38,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Synchronously soft-deletes an entity and saves changes.
         /// </summary>
+        /// <inheritdoc />
         public int Delete<TEntity>(TEntity entity) where TEntity : BaseEntity
         {
             MarkAsDeleted(entity);
@@ -47,6 +49,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Synchronously soft-deletes a collection and saves changes.
         /// </summary>
+        /// <inheritdoc />
         public int Delete<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity
         {
             MarkAsDeleted(entities);
@@ -58,6 +61,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Asynchronously soft-deletes an entity and saves changes.
         /// </summary>
+        /// <inheritdoc />
         public async Task<int> DeleteAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
@@ -69,6 +73,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Asynchronously soft-deletes a collection and saves changes.
         /// </summary>
+        /// <inheritdoc />
         public async Task<int> DeleteAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
@@ -82,6 +87,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region Hard Delete (Physical Removal)
 
+        /// <inheritdoc />
         public async Task<int> HardDeleteAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
@@ -90,6 +96,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
+        /// <inheritdoc />
         public async Task<int> HardDeleteAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
@@ -102,6 +109,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region Conditional & Safe Delete
 
+        /// <inheritdoc />
         public async Task<bool> DeleteIfExistsAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
@@ -114,6 +122,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return true;
         }
 
+        /// <inheritdoc />
         public async Task<bool> DeleteByIdAsync<TEntity>(object id, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
@@ -126,6 +135,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return true;
         }
 
+        /// <inheritdoc />
         public async Task<bool> TryDeleteAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
@@ -151,6 +161,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Hard delete via bulk (no tracking).
         /// </summary>
+        /// <inheritdoc />
         public async Task<int> DeleteFromQueryAsync<TEntity>(Expression<Func<TEntity, bool>> predicate)
             where TEntity : BaseEntity
         {
@@ -160,6 +171,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Soft delete via bulk update (EF Core 7+).
         /// </summary>
+        /// <inheritdoc />
         public async Task<int> SoftDeleteFromQueryAsync<TEntity>(Expression<Func<TEntity, bool>> predicate)
             where TEntity : BaseEntity
         {
@@ -175,6 +187,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region Restore (Undelete)
 
+        /// <inheritdoc />
         public async Task<int> RestoreAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
@@ -190,6 +203,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
+        /// <inheritdoc />
         public async Task<int> RestoreRangeAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
@@ -205,6 +219,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
+        /// <inheritdoc />
         public async Task<bool> RestoreByIdAsync<TEntity>(object id, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
@@ -216,6 +231,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return affected > 0;
         }
 
+        /// <inheritdoc />
         public async Task<bool> TryRestoreAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
@@ -238,6 +254,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region Delete by Condition & Purge
 
+        /// <inheritdoc />
         public async Task<int> DeleteRangeByConditionAsync<TEntity>(
             Expression<Func<TEntity, bool>> predicate,
             CancellationToken cancellationToken = default)
@@ -261,6 +278,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// Purge (hard delete) soft-deleted entities older than threshold.
         /// Uses bulk delete for performance.
         /// </summary>
+        /// <inheritdoc />
         public async Task<int> PurgeSoftDeletedAsync<TEntity>(DateTime threshold, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
@@ -272,6 +290,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Deletes (soft) and returns the entity for audit/logging.
         /// </summary>
+        /// <inheritdoc />
         public async Task<TEntity?> DeleteAndReturnAsync<TEntity>(object id, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {

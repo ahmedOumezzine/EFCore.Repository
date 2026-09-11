@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Entities;
+using AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -9,8 +9,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     /// Partial implementation of the generic repository for counting entities.
     /// Supports filtering, soft delete exclusion, and optimized queries.
     /// </summary>
-    /// <typeparam name="TDbContext">The type of the database context.</typeparam>
-    public sealed partial class Repository<TDbContext> : IRepository
+        public sealed partial class Repository<TDbContext> : IRepository
         where TDbContext : DbContext
     {
         #region Count (int)

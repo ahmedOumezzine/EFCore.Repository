@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Entities;
+using AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
@@ -18,6 +18,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Retrieves an entity by its Guid primary key.
         /// </summary>
+        /// <inheritdoc />
         public async Task<TEntity?> GetByIdAsync<TEntity>(
             Guid id,
             CancellationToken cancellationToken = default)
@@ -31,9 +32,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Retrieves an entity by its Guid primary key with includes.
         /// </summary>
+        /// <inheritdoc />
         public async Task<TEntity?> GetByIdAsync<TEntity>(
             Guid id,
-            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes,
             CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
@@ -47,6 +49,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Retrieves an entity by its Guid primary key with optional tracking.
         /// </summary>
+        /// <inheritdoc />
         public async Task<TEntity?> GetByIdAsync<TEntity>(
             Guid id,
             bool asNoTracking,
@@ -61,9 +64,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Retrieves an entity by its Guid primary key with includes and optional tracking.
         /// </summary>
+        /// <inheritdoc />
         public async Task<TEntity?> GetByIdAsync<TEntity>(
             Guid id,
-            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes,
             bool asNoTracking,
             CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
@@ -83,6 +87,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Projects and retrieves a single value by Guid ID.
         /// </summary>
+        /// <inheritdoc />
         public async Task<TProjected?> GetProjectedByIdAsync<TEntity, TProjected>(
             Guid id,
             Expression<Func<TEntity, TProjected>> selector,
@@ -101,7 +106,8 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Retrieves a single property value by Guid ID.
         /// </summary>
-        public async Task<TProperty> GetPropertyByIdAsync<TEntity, TProperty>(
+        /// <inheritdoc />
+        public async Task<TProperty?> GetPropertyByIdAsync<TEntity, TProperty>(
             Guid id,
             Expression<Func<TEntity, TProperty>> propertySelector,
             CancellationToken cancellationToken = default)
@@ -122,6 +128,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Retrieves multiple entities by their Guid IDs.
         /// </summary>
+        /// <inheritdoc />
         public async Task<List<TEntity>> GetByIdsAsync<TEntity>(
             IEnumerable<Guid> ids,
             bool asNoTracking = false,
@@ -149,6 +156,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Alias for GetByIdAsync (semantic clarity).
         /// </summary>
+        /// <inheritdoc />
         public Task<TEntity?> FindByIdAsync<TEntity>(Guid id, CancellationToken ct = default)
             where TEntity : BaseEntity
             => GetByIdAsync<TEntity>(id, ct);
@@ -156,6 +164,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Attempts to get an entity without throwing.
         /// </summary>
+        /// <inheritdoc />
         public async Task<(bool Success, TEntity? Entity)> TryGetByIdAsync<TEntity>(
             Guid id,
             CancellationToken cancellationToken = default)

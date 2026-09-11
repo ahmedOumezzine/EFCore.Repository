@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Entities;
+using AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Extensions;
 using AhmedOumezzine.EFCore.Repository.Interface;
 using AhmedOumezzine.EFCore.Repository.Specification;
@@ -18,22 +18,26 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
     {
         #region GetListAsync - Base Overloads
 
+        /// <inheritdoc />
         public Task<List<TEntity>> GetListAsync<TEntity>(CancellationToken ct = default)
             where TEntity : BaseEntity
             => GetListAsync<TEntity>(includes: null, asNoTracking: false, ct);
 
+        /// <inheritdoc />
         public Task<List<TEntity>> GetListAsync<TEntity>(bool asNoTracking, CancellationToken ct = default)
             where TEntity : BaseEntity
             => GetListAsync<TEntity>(includes: null, asNoTracking: asNoTracking, ct);
 
+        /// <inheritdoc />
         public Task<List<TEntity>> GetListAsync<TEntity>(
-            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes,
             CancellationToken ct = default)
             where TEntity : BaseEntity
             => GetListAsync(includes, asNoTracking: false, ct);
 
+        /// <inheritdoc />
         public async Task<List<TEntity>> GetListAsync<TEntity>(
-            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes,
             bool asNoTracking,
             CancellationToken ct = default)
             where TEntity : BaseEntity
@@ -53,12 +57,14 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region GetListAsync - With Condition
 
+        /// <inheritdoc />
         public Task<List<TEntity>> GetListAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
             CancellationToken ct = default)
             where TEntity : BaseEntity
             => GetListAsync(condition, includes: null, asNoTracking: false, ct);
 
+        /// <inheritdoc />
         public Task<List<TEntity>> GetListAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
             bool asNoTracking,
@@ -66,9 +72,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             where TEntity : BaseEntity
             => GetListAsync(condition, includes: null, asNoTracking: asNoTracking, ct);
 
+        /// <inheritdoc />
         public async Task<List<TEntity>> GetListAsync<TEntity>(
             Expression<Func<TEntity, bool>> condition,
-            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes,
             bool asNoTracking,
             CancellationToken ct = default)
             where TEntity : BaseEntity
@@ -91,12 +98,14 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region GetListAsync - With Specification
 
+        /// <inheritdoc />
         public Task<List<TEntity>> GetListAsync<TEntity>(
             Specification<TEntity> specification,
             CancellationToken ct = default)
             where TEntity : BaseEntity
             => GetListAsync(specification, asNoTracking: false, ct);
 
+        /// <inheritdoc />
         public async Task<List<TEntity>> GetListAsync<TEntity>(
             Specification<TEntity> specification,
             bool asNoTracking,
@@ -106,6 +115,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             // Appliquer le soft-delete AVANT la spécification
             var query = _dbContext.Set<TEntity>().Where(e => !e.IsDeleted);
 
+            ArgumentNullException.ThrowIfNull(specification);
             if (specification != null)
                 query = query.GetSpecifiedQuery(specification);
 
@@ -119,6 +129,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region GetListAsync - Projection
 
+        /// <inheritdoc />
         public async Task<List<TProjected>> GetListAsync<TEntity, TProjected>(
             Expression<Func<TEntity, TProjected>> selector,
             CancellationToken ct = default)
@@ -133,6 +144,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .ToListAsync(ct);
         }
 
+        /// <inheritdoc />
         public async Task<List<TProjected>> GetListAsync<TEntity, TProjected>(
             Expression<Func<TEntity, bool>> condition,
             Expression<Func<TEntity, TProjected>> selector,
@@ -148,6 +160,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await query.Select(selector).ToListAsync(ct);
         }
 
+        /// <inheritdoc />
         public async Task<List<TProjected>> GetListAsync<TEntity, TProjected>(
             Specification<TEntity> specification,
             Expression<Func<TEntity, TProjected>> selector,
@@ -169,6 +182,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region GetListAsync - Pagination
 
+        /// <inheritdoc />
         public async Task<PaginatedList<TEntity>> GetListAsync<TEntity>(
             PaginationSpecification<TEntity> specification,
             CancellationToken ct = default)
@@ -180,6 +194,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await query.ToPaginatedListAsync(specification, ct);
         }
 
+        /// <inheritdoc />
         public async Task<PaginatedList<TProjected>> GetListAsync<TEntity, TProjected>(
             PaginationSpecification<TEntity> specification,
             Expression<Func<TEntity, TProjected>> selector,
@@ -192,8 +207,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
             var query = _dbContext.Set<TEntity>().Where(e => !e.IsDeleted);
 
-            if (specification != null)
-                query = query.GetSpecifiedQuery((SpecificationBase<TEntity>)specification);
+            query = query.GetSpecifiedQuery((SpecificationBase<TEntity>)specification);
 
             return await query.Select(selector)
                 .ToPaginatedListAsync(specification.PageIndex, specification.PageSize, ct);
@@ -206,6 +220,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Alias for GetListAsync (semantic clarity).
         /// </summary>
+        /// <inheritdoc />
         public Task<List<TEntity>> GetActiveListAsync<TEntity>(CancellationToken ct = default)
             where TEntity : BaseEntity
             => GetListAsync<TEntity>(ct);
@@ -213,8 +228,9 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Retrieves soft-deleted entities (for audit/restore).
         /// </summary>
+        /// <inheritdoc />
         public async Task<List<TEntity>> GetDeletedListAsync<TEntity>(
-            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes = null,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes = null,
             bool asNoTracking = true, // ✅ No tracking by default
             CancellationToken ct = default)
             where TEntity : BaseEntity
@@ -234,8 +250,9 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region Safe & Utility Methods
 
+        /// <inheritdoc />
         public async Task<(bool Success, List<TEntity> Items)> TryGetListAsync<TEntity>(
-            Expression<Func<TEntity, bool>> condition = null,
+            Expression<Func<TEntity, bool>>? condition = null,
             CancellationToken ct = default)
             where TEntity : BaseEntity
         {
@@ -259,6 +276,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Gets distinct values of a property (includes nulls if applicable).
         /// </summary>
+        /// <inheritdoc />
         public async Task<List<TKey>> GetDistinctByAsync<TEntity, TKey>(
             Expression<Func<TEntity, TKey>> keySelector,
             CancellationToken ct = default)
@@ -277,8 +295,9 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// Loads the full list and checks if any items exist.
         /// Note: This loads all data — use only for small datasets.
         /// </summary>
+        /// <inheritdoc />
         public async Task<(bool HasAny, List<TEntity> Items)> ExistsAnyAndListAsync<TEntity>(
-            Expression<Func<TEntity, bool>> condition = null,
+            Expression<Func<TEntity, bool>>? condition = null,
             CancellationToken ct = default)
             where TEntity : BaseEntity
         {

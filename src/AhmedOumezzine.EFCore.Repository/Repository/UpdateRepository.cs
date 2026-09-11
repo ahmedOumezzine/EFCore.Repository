@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Entities;
+using AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
@@ -17,6 +17,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region Update (Sync)
 
+        /// <inheritdoc />
         public void Update<TEntity>(TEntity entity) where TEntity : BaseEntity
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
@@ -40,6 +41,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             }
         }
 
+        /// <inheritdoc />
         public void Update<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity
         {
             if (entities == null) throw new ArgumentNullException(nameof(entities));
@@ -52,6 +54,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region Update (Async)
 
+        /// <inheritdoc />
         public async Task<int> UpdateAsync<TEntity>(TEntity entity, CancellationToken ct = default)
             where TEntity : BaseEntity
         {
@@ -59,6 +62,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             return await _dbContext.SaveChangesAsync(ct);
         }
 
+        /// <inheritdoc />
         public async Task<int> UpdateAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken ct = default)
             where TEntity : BaseEntity
         {
@@ -70,17 +74,18 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region Update Only (Partial Update)
 
+        /// <inheritdoc />
         public async Task<int> UpdateOnlyAsync<TEntity>(
             TEntity entity,
             string[] properties,
             CancellationToken ct = default)
             where TEntity : BaseEntity
         {
-            if (entity == null) throw new ArgumentNullException(nameof(entity));
-            if (properties == null) throw new ArgumentNullException(nameof(properties));
+            ArgumentNullException.ThrowIfNull(entity);
+            ArgumentNullException.ThrowIfNull(properties);
             var entityType = _dbContext.Model.FindEntityType(typeof(TEntity))
                 ?? throw new InvalidOperationException($"Entity type {typeof(TEntity).Name} is not part of the model.");
-            foreach (var name in properties ?? Array.Empty<string>())
+            foreach (var name in properties)
             {
                 if (string.IsNullOrWhiteSpace(name))
                     throw new ArgumentException("Property names cannot be empty.", nameof(properties));
@@ -103,7 +108,8 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 foreach (var propName in properties)
                 {
                     var metadata = entityType.FindProperty(propName);
-                    if (metadata?.PropertyInfo != null) metadata.PropertyInfo.SetValue(local, metadata.PropertyInfo.GetValue(entity));
+                        if (metadata?.PropertyInfo is { } propertyInfo)
+                            propertyInfo.SetValue(local, propertyInfo.GetValue(entity));
                 }
                 entity = local;
                 entry = _dbContext.Entry(entity);
@@ -116,8 +122,8 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                     foreach (var propName in properties)
                     {
                         var metadata = entityType.FindProperty(propName);
-                        if (metadata != null && !metadata.IsPrimaryKey())
-                            metadata.PropertyInfo?.SetValue(tracked, metadata.PropertyInfo?.GetValue(entity));
+                        if (metadata != null && !metadata.IsPrimaryKey() && metadata.PropertyInfo is { } propertyInfo)
+                            propertyInfo.SetValue(tracked, propertyInfo.GetValue(entity));
                     }
                     entity = tracked;
                     entry = _dbContext.Entry(entity);
@@ -149,6 +155,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region Conditional Update
 
+        /// <inheritdoc />
         public async Task<bool> UpdateIfExistsAsync<TEntity>(
             TEntity entity,
             CancellationToken ct = default)
@@ -171,6 +178,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
         #region Safe Update
 
+        /// <inheritdoc />
         public async Task<bool> TryUpdateAsync<TEntity>(
             TEntity entity,
             CancellationToken ct = default)
@@ -199,6 +207,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// Updates entities matching the predicate in a single database roundtrip.
         /// Automatically sets LastModifiedOnUtc.
         /// </summary>
+        /// <inheritdoc />
         public async Task<int> UpdateFromQueryAsync<TEntity>(
             Expression<Func<TEntity, bool>> predicate,
             Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> updateAction)

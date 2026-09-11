@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Entities;
+using AhmedOumezzine.EFCore.Repository.Entities;
 using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -18,7 +18,8 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// Inserts a single entity and saves changes immediately.
         /// Returns primary key values.
         /// </summary>
-        public async Task<object[]> InsertAsync<TEntity>(
+        /// <inheritdoc />
+        public async Task<object?[]> InsertAsync<TEntity>(
             TEntity entity,
             CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
@@ -29,7 +30,8 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             await _dbContext.SaveChangesAsync(cancellationToken);
 
             var entry = _dbContext.Entry(entity);
-            var primaryKey = entry.Metadata.FindPrimaryKey();
+            var primaryKey = entry.Metadata.FindPrimaryKey()
+                ?? throw new InvalidOperationException($"Entity type {typeof(TEntity).Name} has no primary key.");
             return primaryKey.Properties
                 .Select(p => entry.Property(p.Name).CurrentValue)
                 .ToArray();
@@ -38,6 +40,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Inserts a collection of entities and saves changes immediately.
         /// </summary>
+        /// <inheritdoc />
         public async Task InsertRangeAsync<TEntity>(
             IEnumerable<TEntity> entities,
             CancellationToken cancellationToken = default)
@@ -55,6 +58,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Inserts and returns the entity (useful for getting generated keys).
         /// </summary>
+        /// <inheritdoc />
         public async Task<TEntity> InsertAndReturnAsync<TEntity>(
             TEntity entity,
             CancellationToken cancellationToken = default)
@@ -72,6 +76,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// Inserts entities in chunks (useful for very large lists).
         /// Each chunk triggers a SaveChanges call.
         /// </summary>
+        /// <inheritdoc />
         public async Task InsertManyAsync<TEntity>(
             IEnumerable<TEntity> entities,
             int batchSize = 500,
@@ -94,7 +99,8 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// Inserts with audit logging.
         /// Returns primary key values.
         /// </summary>
-        public async Task<object[]> InsertWithAuditAsync<TEntity>(
+        /// <inheritdoc />
+        public async Task<object?[]> InsertWithAuditAsync<TEntity>(
             TEntity entity,
             string userName,
             CancellationToken cancellationToken = default)
@@ -121,7 +127,8 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             await _dbContext.SaveChangesAsync(cancellationToken);
 
             var entry = _dbContext.Entry(entity);
-            var primaryKey = entry.Metadata.FindPrimaryKey();
+            var primaryKey = entry.Metadata.FindPrimaryKey()
+                ?? throw new InvalidOperationException($"Entity type {typeof(TEntity).Name} has no primary key.");
             return primaryKey.Properties
                 .Select(p => entry.Property(p.Name).CurrentValue)
                 .ToArray();
@@ -130,6 +137,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Inserts entity only if it does not already exist (based on predicate).
         /// </summary>
+        /// <inheritdoc />
         public async Task<bool> InsertIfNotExistsAsync<TEntity>(
             Expression<Func<TEntity, bool>> predicate,
             TEntity entity,
@@ -150,6 +158,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Attempts to insert entity and returns false if it fails due to a DbUpdateException (e.g., duplicate key).
         /// </summary>
+        /// <inheritdoc />
         public async Task<bool> TryInsertAsync<TEntity>(
             TEntity entity,
             CancellationToken cancellationToken = default)
@@ -170,6 +179,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// Not guaranteed to be atomic across concurrent callers. Use a unique constraint and
         /// provider-specific upsert when concurrent writers require atomicity.
         /// </summary>
+        /// <inheritdoc />
         public async Task UpsertAsync<TEntity>(
             Expression<Func<TEntity, bool>> predicate,
             TEntity entity,
@@ -201,6 +211,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Inserts entities in a transaction (all-or-nothing).
         /// </summary>
+        /// <inheritdoc />
         public async Task InsertWithTransactionAsync<TEntity>(
             IEnumerable<TEntity> entities,
             CancellationToken cancellationToken = default)

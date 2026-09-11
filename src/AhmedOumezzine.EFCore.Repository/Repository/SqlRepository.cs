@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Interface;
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Data.Common;
@@ -17,6 +17,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Executes a raw SQL command (INSERT, UPDATE, DELETE) and returns the number of affected rows.
         /// </summary>
+        /// <inheritdoc />
         public Task<int> ExecuteSqlCommandAsync(
             string sql,
             CancellationToken ct = default)
@@ -30,6 +31,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Executes a parameterized raw SQL command.
         /// </summary>
+        /// <inheritdoc />
         public Task<int> ExecuteSqlCommandAsync(
             string sql,
             params object[] parameters)
@@ -43,6 +45,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Executes a parameterized raw SQL command with cancellation.
         /// </summary>
+        /// <inheritdoc />
         public Task<int> ExecuteSqlCommandAsync(
             string sql,
             IEnumerable<object> parameters,
@@ -61,6 +64,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Executes a raw SQL SELECT query and maps results to entities.
         /// </summary>
+        /// <inheritdoc />
         public async Task<List<T>> GetFromRawSqlAsync<T>(
             string sql,
             CancellationToken ct = default)
@@ -74,6 +78,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .ToListAsync(ct);
         }
 
+        /// <inheritdoc />
         public async Task<List<T>> GetFromRawSqlAsync<T>(
             string sql,
             params object[] parameters)
@@ -87,6 +92,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .ToListAsync();
         }
 
+        /// <inheritdoc />
         public async Task<List<T>> GetFromRawSqlAsync<T>(
             string sql,
             IEnumerable<object> parameters,
@@ -101,6 +107,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 .ToListAsync(ct);
         }
 
+        /// <inheritdoc />
         public async Task<List<T>> GetFromRawSqlAsync<T>(
             string sql,
             IEnumerable<DbParameter> parameters,
@@ -122,9 +129,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Executes a SQL query and returns a single scalar value.
         /// </summary>
-        public async Task<T> ExecuteScalarAsync<T>(
+        /// <inheritdoc />
+        public async Task<T?> ExecuteScalarAsync<T>(
             string sql,
-            IEnumerable<object> parameters = null,
+            IEnumerable<object>? parameters = null,
             CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(sql))
@@ -175,9 +183,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Executes a raw SQL query and returns the first entity or null.
         /// </summary>
+        /// <inheritdoc />
         public async Task<T?> GetSingleFromSqlAsync<T>(
             string sql,
-            IEnumerable<object> parameters = null,
+            IEnumerable<object>? parameters = null,
             CancellationToken ct = default)
             where T : class
         {
@@ -196,9 +205,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Checks if any row matches the SQL query.
         /// </summary>
+        /// <inheritdoc />
         public async Task<bool> ExistsBySqlAsync(
             string sql,
-            IEnumerable<object> parameters = null,
+            IEnumerable<object>? parameters = null,
             CancellationToken ct = default)
         {
             var count = await ExecuteScalarAsync<int>(sql, parameters, ct);
@@ -212,9 +222,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         /// <summary>
         /// Executes a SQL command within a transaction.
         /// </summary>
+        /// <inheritdoc />
         public async Task<int> ExecuteInTransactionAsync(
             string sql,
-            IEnumerable<object> parameters = null,
+            IEnumerable<object>? parameters = null,
             CancellationToken ct = default)
         {
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(ct);

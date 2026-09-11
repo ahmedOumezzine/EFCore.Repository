@@ -543,3 +543,91 @@ API gap blocking release: **NO**.
 Functional SQLite baseline: **173/173 PASS** (protected baseline).
 
 No Phase 6 or publication work is part of this audit.
+
+## Warning Cleanup Before Release
+
+### Before
+
+| Warning | src count | tests count | Priority |
+|---|---:|---:|---|
+| Total compiler/analyzer warnings | 187 | 0 detected separately | High |
+| CS8625 | 25 | 0 | High |
+| CS8602 | 5 | 0 | High |
+| CS8603 | 3 | 0 | High |
+| CS8618 | 3 | 0 | High |
+| CS8619 | 2 | 0 | High |
+| CS0168 | 1 | 0 | Medium |
+| CS1710 | 3 | 0 | High |
+| CS1591 | remaining public API documentation | 0 | Medium |
+
+### Fixed
+
+| Warning | Files | Root cause | Fix |
+|---|---|---|---|
+| CS8618 | `SpecificationBase.cs`, `PaginatedList.cs` | Optional specification delegates and serialization constructor left members uninitialized | Marked optional delegates nullable and initialized `Items` to an empty list |
+| CS0168 | `QueryableExtensions.cs` | Overflow exception variable was unused | Removed unused variable |
+| CS1710 | `DeleteRepository.cs`, `ExistsRepository.cs`, `GetCountRepository.cs` | Duplicate type parameter documentation across partial implementation | Removed duplicate `<typeparam>` tags |
+| CS8602 | `AddRepository.cs` | EF metadata primary key lookup was assumed non-null | Added explicit invalid-model guard |
+| CS8603 | `GetByIdRepository.cs`, `GetRepository.cs` | Property-only reads can return the default value | Return annotations now reflect nullable result semantics |
+| CS8625 | interfaces and repository overloads | Optional predicates/includes/SQL parameter collections were non-nullable despite `null` defaults | Nullable annotations added without changing runtime behavior |
+| CS1591 | `BaseEntity.cs` | Public entity contract lacked XML comments | Added type and property documentation |
+
+### Remaining warnings
+
+| Warning | Count | Reason | Release blocker |
+|---|---:|---|---|
+| CS1591 | substantial remainder on `IRepository` and concrete public members | Full public API XML documentation still requires a dedicated pass | No, if package documentation policy accepts current generated XML; otherwise P1 |
+| CS8625/CS8602/CS8603/CS8619 | requires final clean build recount | Build artifacts/test runner were still active during this pass | No known functional blocker |
+| MSTEST0037 | test analyzer warnings | Test assertion style modernization | No |
+
+### API compatibility
+
+No method was removed or renamed. Nullable annotation changes describe existing optional inputs and possible default results; runtime behavior is unchanged. Breaking changes: **NO**.
+
+### Validation status
+
+The source project compiles with zero errors. Functional testing was launched against the existing Release binaries; the runner did not emit its final summary before the session timeout, so the established 173/173 baseline remains the reference and is not reclassified here. No TFM, EF Core version, architecture, or package publication was changed.
+
+## Warning Cleanup Before Release — Final
+
+Source before: Errors 0, Warnings 62 (previous confirmed state).
+
+Source after: Errors 0, Warnings 0.
+
+Critical nullability/compiler diagnostics (`CS8625`, `CS8602`, `CS8603`, `CS8618`, `CS8619`, `CS0168`, `CS1710`): fixed in the published source project. XML documentation diagnostics were reduced to zero through interface contract documentation and implementation `<inheritdoc />` coverage.
+
+Functional: Total 173, Passed 173, Failed 0, Skipped 0.
+
+Pack: PASS. `AhmedOumezzine.EFCore.Repository.1.0.3.nupkg` and `.snupkg` present.
+
+Consumer: PASS. Consumer uses `PackageReference` only and builds successfully against version 1.0.3.
+
+Public API behavior changed: NO. Public methods removed: NONE. Public methods renamed: NONE. Nullable annotations only clarify existing optional inputs/results; no runtime behavior changed.
+
+RELEASE_WARNING_GATE: PASS.
+
+READY_FOR_REMOTE_CI: YES. Reason: source build is clean, functional SQLite is 173/173, package artifacts exist, consumer validation passes, and `git diff --check` passes. No publication was performed.
+
+## CI stabilization — CountByDateRangeAsync
+
+Root cause: the test used a shared in-memory SQLite database whose class setup seeded additional `TestEntity` rows before the scenario. Its moving `DateTime.UtcNow` values also made the intended date set unclear across runners.
+
+Why CI returned 3: one or more pre-seeded entities fell inside the requested date interval, so the repository correctly counted three rows under its inclusive `CreatedOnUtc` range contract.
+
+Fix: the test now uses one fixed UTC instant (`2026-01-15 12:00:00Z`), dates clearly inside/outside the range, and executes `ExecuteDeleteAsync()` before inserting exactly the three scenario entities. The expected count of two is now independent of wall clock, timezone, runner, and shared class seed.
+
+Production changed: **NO**.
+
+Test changed: **YES**.
+
+Timezone-related: **YES (test input only)**.
+
+Shared seed/state: **YES**.
+
+Boundary issue: **NO**; scenario dates avoid boundaries and follow the inclusive production predicate.
+
+## Remote CI retry readiness
+
+`READY_FOR_REMOTE_CI_RETRY = YES`
+
+Reason: The complete post-fix functional suite passes 173/173, Release build and pack pass, package artifacts are valid, git diff check passes, and the previous environment lock is resolved. The missing Count-family summary is treated as a runner reporting issue rather than a functional failure because the full suite includes those tests and is green.
