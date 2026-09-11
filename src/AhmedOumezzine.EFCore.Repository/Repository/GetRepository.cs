@@ -137,6 +137,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 var entity = await GetAsync(condition, ct);
                 return (entity != null, entity);
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch
             {
                 return (false, null);

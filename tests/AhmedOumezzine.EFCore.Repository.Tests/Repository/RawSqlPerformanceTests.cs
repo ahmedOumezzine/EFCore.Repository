@@ -7,6 +7,7 @@ using System.Diagnostics;
 namespace AhmedOumezzine.EFCore.Performance.Tests
 {
     [TestClass]
+    [TestCategory("Performance")]
     public class RawSqlPerformanceTests : RepositoryTestBase<TestEntity>
     {
         private Fixture _fixture = new();

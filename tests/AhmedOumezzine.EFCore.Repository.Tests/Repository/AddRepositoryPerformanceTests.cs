@@ -6,6 +6,7 @@ using System.Diagnostics;
 namespace AhmedOumezzine.EFCore.Performance.Tests
 {
     [TestClass]
+    [TestCategory("Performance")]
     public class AddRepositoryPerformanceTests : RepositoryTestBase<TestEntity>
     {
         private Repository<TestDbContext> _repo;

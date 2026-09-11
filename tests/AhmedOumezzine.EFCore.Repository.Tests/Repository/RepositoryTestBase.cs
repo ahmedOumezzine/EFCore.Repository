@@ -80,6 +80,16 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             context.Database.EnsureDeleted();
             context.Database.EnsureCreated();
         }
+
+        protected static async Task SeedDeletedAsync(TestEntity entity)
+        {
+            entity.IsDeleted = true;
+            entity.DeletedOnUtc ??= DateTime.UtcNow.AddDays(-10);
+            await using var context = CreateDbContext();
+            context.TestEntities.Add(entity);
+            await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
+        }
     }
 
     // ========================

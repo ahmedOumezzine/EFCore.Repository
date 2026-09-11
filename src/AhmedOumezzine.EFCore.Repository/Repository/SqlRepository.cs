@@ -83,7 +83,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 throw new ArgumentNullException(nameof(sql));
 
             return await _dbContext.Set<T>()
-                .FromSqlRaw(sql, parameters)
+                .FromSqlRaw(sql, parameters?.ToArray() ?? Array.Empty<object>())
                 .ToListAsync();
         }
 
@@ -97,7 +97,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 throw new ArgumentNullException(nameof(sql));
 
             return await _dbContext.Set<T>()
-                .FromSqlRaw(sql, parameters)
+                .FromSqlRaw(sql, parameters?.ToArray() ?? Array.Empty<object>())
                 .ToListAsync(ct);
         }
 
@@ -111,7 +111,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 throw new ArgumentNullException(nameof(sql));
 
             return await _dbContext.Set<T>()
-                .FromSqlRaw(sql, parameters)
+                .FromSqlRaw(sql, parameters?.ToArray() ?? Array.Empty<DbParameter>())
                 .ToListAsync(ct);
         }
 
@@ -147,6 +147,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                     foreach (var param in parameters)
                     {
                         var dbParam = command.CreateParameter();
+                        dbParam.ParameterName = $"@p{command.Parameters.Count}";
                         dbParam.Value = param ?? DBNull.Value;
                         command.Parameters.Add(dbParam);
                     }
@@ -183,7 +184,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentNullException(nameof(sql));
 
-            var query = _dbContext.Set<T>().FromSqlRaw(sql, parameters ?? Array.Empty<object>());
+            var query = _dbContext.Set<T>().FromSqlRaw(sql, parameters?.ToArray() ?? Array.Empty<object>());
             var list = await query.Take(1).ToListAsync(ct);
             return list.FirstOrDefault();
         }
@@ -219,7 +220,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(ct);
             try
             {
-                var result = await ExecuteSqlCommandAsync(sql, parameters, ct);
+                var result = await ExecuteSqlCommandAsync(sql, parameters ?? Array.Empty<object>(), ct);
                 await transaction.CommitAsync(ct);
                 return result;
             }

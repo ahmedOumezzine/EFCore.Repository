@@ -9,6 +9,7 @@ using System.Diagnostics;
 namespace AhmedOumezzine.EFCore.Performance.Tests
 {
     [TestClass]
+    [TestCategory("Performance")]
     public class UpdateRepositoryPerformanceTests : RepositoryTestBase<TestEntity>
     {
         private Fixture _fixture = new();

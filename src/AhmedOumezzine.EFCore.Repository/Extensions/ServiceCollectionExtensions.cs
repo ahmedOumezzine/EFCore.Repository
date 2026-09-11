@@ -32,7 +32,7 @@ namespace AhmedOumezzine.EFCore.Repository.Extensions
                 typeof(IRepository),
                 serviceProvider =>
                 {
-                    TDbContext dbContext = ActivatorUtilities.CreateInstance<TDbContext>(serviceProvider);
+                    TDbContext dbContext = serviceProvider.GetRequiredService<TDbContext>();
                     return new Repository<TDbContext>(dbContext);
                 },
                 lifetime));

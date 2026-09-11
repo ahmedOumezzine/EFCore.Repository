@@ -7,9 +7,25 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Version>1.0.3</Version>
+    <PackageId>AhmedOumezzine.EFCore.Repository</PackageId>
+    <Authors>Ahmed Oumezzine</Authors>
+    <Description>Generic Entity Framework Core 9 repository with soft-delete, specifications, pagination, bulk, SQL and transaction support.</Description>
+    <PackageTags>entity-framework-core;repository;soft-delete;pagination;specification</PackageTags>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/ahmedOumezzine/EFCore.Repository</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="README.md" />
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="LICENSE.txt" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.9" />
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.8" />

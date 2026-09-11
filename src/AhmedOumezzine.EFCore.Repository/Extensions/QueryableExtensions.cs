@@ -45,7 +45,15 @@ namespace AhmedOumezzine.EFCore.Repository.Extensions
 
             long count = await source.LongCountAsync(cancellationToken);
 
-            int skip = (pageIndex - 1) * pageSize;
+            int skip;
+            try
+            {
+                skip = checked((pageIndex - 1) * pageSize);
+            }
+            catch (OverflowException ex)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pageIndex), "The requested page offset is too large.");
+            }
 
             List<T> items = await source.Skip(skip).Take(pageSize).ToListAsync(cancellationToken);
 

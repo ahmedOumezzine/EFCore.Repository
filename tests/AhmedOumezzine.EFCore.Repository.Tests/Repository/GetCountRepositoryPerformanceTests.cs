@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 namespace AhmedOumezzine.EFCore.Performance.Tests
 {
     [TestClass]
+    [TestCategory("Performance")]
     public class GetCountRepositoryPerformanceTests : RepositoryTestBase<TestEntity>
     {
         private Repository<TestDbContext> _repo;

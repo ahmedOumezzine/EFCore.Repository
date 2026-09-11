@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Repository;
+using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using AutoFixture;
 using System.Linq.Expressions;
@@ -70,7 +70,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
                 .With(e => e.Name, "DeletedName")
                 .With(e => e.IsDeleted, true)
                 .Create();
-            await _repo.InsertAsync(deletedEntity);
+            await SeedDeletedAsync(deletedEntity);
 
             // Act
             var count = await _repo.GetCountAsync<TestEntity>(e => e.Name == "DeletedName");
@@ -202,7 +202,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         public async Task HasAnyAsync_WithCondition_WhenEntityDoesNotExist_ShouldReturnFalse()
         {
             // Act
-            var result = await _repo.HasAnyAsync<TestEntity>(e => e.Id == Guid.NewGuid());
+            var missingId = Guid.NewGuid();
+            var result = await _repo.HasAnyAsync<TestEntity>(e => e.Id == missingId);
 
             // Assert
             Assert.IsFalse(result);
@@ -261,7 +262,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var counts = await _repo.CountByStatusAsync<TestEntity>(e => e.IsActive);
 
             // Assert
-            Assert.AreEqual(2, counts[true]);
+            Assert.AreEqual(ACTIVE_COUNT + 2, counts[true]);
             Assert.AreEqual(1, counts[false]);
         }
 
@@ -272,12 +273,14 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var start = DateTime.UtcNow.AddDays(-10);
             var end = DateTime.UtcNow.AddDays(-5);
 
-            await _repo.InsertRangeAsync(new[]
+            await using var context = CreateDbContext();
+            await context.TestEntities.AddRangeAsync(new[]
             {
                 new TestEntity { CreatedOnUtc = DateTime.UtcNow.AddDays(-8) },
                 new TestEntity { CreatedOnUtc = DateTime.UtcNow.AddDays(-6) },
                 new TestEntity { CreatedOnUtc = DateTime.UtcNow.AddDays(-12) } // Outside range
             });
+            await context.SaveChangesAsync();
 
             // Act
             var count = await _repo.CountByDateRangeAsync<TestEntity>(start, end);

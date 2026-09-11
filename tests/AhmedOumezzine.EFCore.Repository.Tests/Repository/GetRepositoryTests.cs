@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Repository;
+using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Repository.Specification;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using AutoFixture;
@@ -27,8 +27,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
                 .With(e => e.IsDeleted, true)
                 .Create();
 
-            _parentEntity = _fixture.Create<ParentEntity>();
-            var child = _fixture.Build<ChildEntity>().With(c => c.ParentId, _parentEntity.Id).Create();
+            _parentEntity = new ParentEntity { Id = Guid.NewGuid(), Name = "Parent" };
+            var child = new ChildEntity { Id = Guid.NewGuid(), Name = "Child", ParentId = _parentEntity.Id };
             _parentEntity.Children.Add(child);
 
             var context = CreateDbContext();
@@ -54,7 +54,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         public async Task GetAsync_ByCondition_ShouldReturnNullWhenNotFound()
         {
             // Act
-            var entity = await _repo.GetAsync<TestEntity>(e => e.Id == Guid.NewGuid());
+            var missingId = Guid.NewGuid();
+            var entity = await _repo.GetAsync<TestEntity>(e => e.Id == missingId);
 
             // Assert
             Assert.IsNull(entity);
@@ -276,8 +277,9 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         public async Task GetFirstOrThrowAsync_WhenNotFound_ShouldThrowWithCustomMessage()
         {
             // Act & Assert
+            var missingId = Guid.NewGuid();
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                _repo.GetFirstOrThrowAsync<TestEntity>(e => e.Id == Guid.NewGuid(), "Entity was not found."));
+                _repo.GetFirstOrThrowAsync<TestEntity>(e => e.Id == missingId, "Entity was not found."));
             Assert.AreEqual("Entity was not found.", ex.Message);
         }
 
@@ -296,7 +298,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         public async Task ExistsAndFetchAsync_WhenNotFound_ShouldReturnFalseAndNull()
         {
             // Act
-            var (exists, entity) = await _repo.ExistsAndFetchAsync<TestEntity>(e => e.Id == Guid.NewGuid());
+            var missingId = Guid.NewGuid();
+            var (exists, entity) = await _repo.ExistsAndFetchAsync<TestEntity>(e => e.Id == missingId);
 
             // Assert
             Assert.IsFalse(exists);

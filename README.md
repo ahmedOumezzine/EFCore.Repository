@@ -1,12 +1,12 @@
 # 📦 AhmedOumezzine.EFCore.Repository
 
-> **Un repository générique léger, moderne et extensible pour Entity Framework Core (EF Core 6/7/8/9)**
+> **Un repository générique léger, moderne et extensible pour Entity Framework Core (EF Core 9)**
 
-Éliminez la répétition du code CRUD et accélérez votre développement avec une couche repository **prête à l’emploi**, **100 % async**, et **optimisée pour le soft delete, la pagination, les projections et les specifications.**
+Éliminez la répétition du code CRUD et accélérez votre développement avec une couche repository **prête à l’emploi**, **asynchrone**, et **optimisée pour le soft delete, la pagination, les projections et les specifications.**
 
 ---
 
-## 🌟 Pourquoi choisir ce Repository ?
+## 🌟 Fonctionnalités
 
 Le pattern Repository divise, mais **bien conçu, il devient un levier de productivité.**
 
@@ -80,3 +80,7 @@ Toute contribution (PR, rapport de bug, suggestion) est la bienvenue.
 
 ## 📄 Licence
 Ce projet est publié sous licence MIT — libre d’utilisation, modification et distribution, même à des fins commerciales.
+
+## Compatibilité
+
+Cette version cible .NET 9 et EF Core 9. SQLite en mémoire est utilisé pour les tests fonctionnels. La validation SQL Server et l’atomicité concurrente de l’upsert restent des limitations documentées.

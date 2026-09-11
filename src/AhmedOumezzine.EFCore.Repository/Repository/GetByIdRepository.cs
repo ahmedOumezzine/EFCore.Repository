@@ -166,6 +166,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 var entity = await GetByIdAsync<TEntity>(id, cancellationToken);
                 return (entity != null, entity);
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch
             {
                 return (false, null);

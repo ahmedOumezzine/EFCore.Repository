@@ -21,7 +21,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         public void Remove<TEntity>(TEntity entity) where TEntity : BaseEntity
         {
             MarkAsDeleted(entity);
-            _dbContext.Entry(entity).State = EntityState.Modified;
+            MarkSoftDeleteProperties(entity);
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         {
             MarkAsDeleted(entities);
             foreach (var entity in entities)
-                _dbContext.Entry(entity).State = EntityState.Modified;
+                MarkSoftDeleteProperties(entity);
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         public int Delete<TEntity>(TEntity entity) where TEntity : BaseEntity
         {
             MarkAsDeleted(entity);
-            _dbContext.Entry(entity).State = EntityState.Modified;
+            MarkSoftDeleteProperties(entity);
             return _dbContext.SaveChanges();
         }
 
@@ -51,7 +51,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         {
             MarkAsDeleted(entities);
             foreach (var entity in entities)
-                _dbContext.Entry(entity).State = EntityState.Modified;
+                MarkSoftDeleteProperties(entity);
             return _dbContext.SaveChanges();
         }
 
@@ -62,7 +62,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             where TEntity : BaseEntity
         {
             MarkAsDeleted(entity);
-            _dbContext.Entry(entity).State = EntityState.Modified;
+            MarkSoftDeleteProperties(entity);
             return await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
@@ -74,7 +74,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         {
             MarkAsDeleted(entities);
             foreach (var entity in entities)
-                _dbContext.Entry(entity).State = EntityState.Modified;
+                MarkSoftDeleteProperties(entity);
             return await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
@@ -117,11 +117,11 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         public async Task<bool> DeleteByIdAsync<TEntity>(object id, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
-            var entity = await _dbContext.Set<TEntity>().FindAsync(new[] { id }, cancellationToken);
+            var entity = await _dbContext.Set<TEntity>().IgnoreQueryFilters().FirstOrDefaultAsync(e => e.Id == (Guid)id, cancellationToken);
             if (entity == null || entity.IsDeleted) return false;
 
             MarkAsDeleted(entity);
-            _dbContext.Entry(entity).State = EntityState.Modified;
+            MarkSoftDeleteProperties(entity);
             await _dbContext.SaveChangesAsync(cancellationToken);
             return true;
         }
@@ -133,6 +133,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             {
                 await DeleteAsync(entity, cancellationToken);
                 return true;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch
             {
@@ -177,9 +181,12 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             if (entity == null) throw new ArgumentNullException(nameof(entity));
             if (!entity.IsDeleted) return 0;
 
-            entity.IsDeleted = false;
-            entity.DeletedOnUtc = null;
-            _dbContext.Entry(entity).State = EntityState.Modified;
+            var tracked = await _dbContext.Set<TEntity>().IgnoreQueryFilters()
+                .FirstOrDefaultAsync(e => e.Id == entity.Id && e.IsDeleted, cancellationToken);
+            if (tracked == null) return 0;
+            tracked.IsDeleted = false;
+            tracked.DeletedOnUtc = null;
+            tracked.LastModifiedOnUtc = DateTime.UtcNow;
             return await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
@@ -193,7 +200,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             {
                 entity.IsDeleted = false;
                 entity.DeletedOnUtc = null;
-                _dbContext.Entry(entity).State = EntityState.Modified;
+                MarkSoftDeleteProperties(entity);
             }
             return await _dbContext.SaveChangesAsync(cancellationToken);
         }
@@ -201,14 +208,12 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         public async Task<bool> RestoreByIdAsync<TEntity>(object id, CancellationToken cancellationToken = default)
             where TEntity : BaseEntity
         {
-            var entity = await _dbContext.Set<TEntity>().FindAsync(new[] { id }, cancellationToken);
-            if (entity == null || !entity.IsDeleted) return false;
-
-            entity.IsDeleted = false;
-            entity.DeletedOnUtc = null;
-            _dbContext.Entry(entity).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            return true;
+            var affected = await _dbContext.Set<TEntity>().IgnoreQueryFilters()
+                .Where(e => e.Id == (Guid)id && e.IsDeleted)
+                .ExecuteUpdateAsync(s => s.SetProperty(e => e.IsDeleted, false)
+                    .SetProperty(e => e.DeletedOnUtc, (DateTime?)null)
+                    .SetProperty(e => e.LastModifiedOnUtc, DateTime.UtcNow), cancellationToken);
+            return affected > 0;
         }
 
         public async Task<bool> TryRestoreAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
@@ -218,6 +223,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             {
                 await RestoreAsync(entity, cancellationToken);
                 return true;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch
             {
@@ -243,7 +252,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
             MarkAsDeleted(entities);
             foreach (var entity in entities)
-                _dbContext.Entry(entity).State = EntityState.Modified;
+                MarkSoftDeleteProperties(entity);
 
             return await _dbContext.SaveChangesAsync(cancellationToken);
         }
@@ -270,7 +279,7 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             if (entity == null || entity.IsDeleted) return null;
 
             MarkAsDeleted(entity);
-            _dbContext.Entry(entity).State = EntityState.Modified;
+            MarkSoftDeleteProperties(entity);
             await _dbContext.SaveChangesAsync(cancellationToken);
             return entity;
         }

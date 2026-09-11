@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Repository;
+using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using AutoFixture;
 
@@ -20,7 +20,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var deletedEntity = _fixture.Build<TestEntity>()
                 .With(e => e.IsDeleted, true)
                 .Create();
-            await _repo.InsertRangeAsync(new[] { activeEntity, deletedEntity });
+            await _repo.InsertAsync(activeEntity);
+            await SeedDeletedAsync(deletedEntity);
         }
 
         #region Exists Tests
@@ -47,7 +48,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var deletedEntity = _fixture.Build<TestEntity>()
                 .With(e => e.IsDeleted, true)
                 .Create();
-            await repo.InsertAsync(deletedEntity);
+            await SeedDeletedAsync(deletedEntity);
 
             // Act
             var result = await repo.ExistsAsync<TestEntity>();
@@ -82,7 +83,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
                 .With(e => e.Name, deletedName)
                 .With(e => e.IsDeleted, true)
                 .Create();
-            await _repo.InsertAsync(deletedEntity);
+            await SeedDeletedAsync(deletedEntity);
 
             // Act
             var result = await _repo.ExistsAsync<TestEntity>(e => e.Name == deletedName);
@@ -135,7 +136,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             var deletedEntity = _fixture.Build<TestEntity>()
                 .With(e => e.IsDeleted, true)
                 .Create();
-            await _repo.InsertAsync(deletedEntity);
+            await SeedDeletedAsync(deletedEntity);
 
             // Act
             var result = await _repo.ExistsByIdAsync<TestEntity>(deletedEntity.Id);
@@ -183,7 +184,9 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
                 new TestEntity { Name = "Category B" },
                 new TestEntity { Name = "Category A" }
             };
-            await _repo.InsertRangeAsync(newEntities);
+            await _repo.InsertAsync(newEntities[0]);
+            await SeedDeletedAsync(newEntities[1]);
+            await _repo.InsertAsync(newEntities[2]);
 
             // Act
             var count = await _repo.CountAsync<TestEntity>(e => e.Name == "Category A");
@@ -201,7 +204,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
                 new TestEntity { Name = "Category C" },
                 new TestEntity { Name = "Category C", IsDeleted = true }
             };
-            await _repo.InsertRangeAsync(newEntities);
+            await _repo.InsertAsync(newEntities[0]);
+            await SeedDeletedAsync(newEntities[1]);
 
             // Act
             var count = await _repo.CountAsync<TestEntity>(e => e.Name == "Category C");

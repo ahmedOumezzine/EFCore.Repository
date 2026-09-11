@@ -61,8 +61,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         public async Task GetListAsync_WithIncludes_ShouldLoadRelatedData()
         {
             // Arrange
-            var parent = _fixture.Create<ParentEntity>();
-            var child = _fixture.Build<ChildEntity>().With(c => c.ParentId, parent.Id).Create();
+            var parent = new ParentEntity { Id = Guid.NewGuid(), Name = "Parent" };
+            var child = new ChildEntity { Id = Guid.NewGuid(), Name = "Child", ParentId = parent.Id };
             parent.Children.Add(child);
             await _repo.InsertAsync(parent);
 
@@ -78,8 +78,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         public async Task GetListAsync_WithIncludesAndAsNoTracking_ShouldWorkCorrectly()
         {
             // Arrange
-            var parent = _fixture.Create<ParentEntity>();
-            var child = _fixture.Build<ChildEntity>().With(c => c.ParentId, parent.Id).Create();
+            var parent = new ParentEntity { Id = Guid.NewGuid(), Name = "Parent" };
+            var child = new ChildEntity { Id = Guid.NewGuid(), Name = "Child", ParentId = parent.Id };
             parent.Children.Add(child);
             await _repo.InsertAsync(parent);
 
@@ -123,6 +123,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         {
             // Arrange
             var specialEntity = _fixture.Create<TestEntity>();
+            await _repo.InsertAsync(specialEntity);
             var spec = new TestSpecification(specialEntity.Id);
 
             // Act
@@ -220,7 +221,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             // Assert
             Assert.AreEqual(5, paginatedList.Items.Count);
             Assert.AreEqual(_activeEntities.Count, paginatedList.TotalItems);
-            Assert.AreEqual(3, paginatedList.TotalPages);
+            Assert.AreEqual(2, paginatedList.TotalPages);
         }
 
         [TestMethod]

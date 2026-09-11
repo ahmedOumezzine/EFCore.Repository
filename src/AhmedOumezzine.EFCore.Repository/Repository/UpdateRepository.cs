@@ -78,14 +78,54 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
             if (properties == null) throw new ArgumentNullException(nameof(properties));
+            var entityType = _dbContext.Model.FindEntityType(typeof(TEntity))
+                ?? throw new InvalidOperationException($"Entity type {typeof(TEntity).Name} is not part of the model.");
+            foreach (var name in properties ?? Array.Empty<string>())
+            {
+                if (string.IsNullOrWhiteSpace(name))
+                    throw new ArgumentException("Property names cannot be empty.", nameof(properties));
+                var property = entityType.FindProperty(name);
+                if (property == null)
+                    throw new ArgumentException($"Property '{name}' was not found on {typeof(TEntity).Name}.", nameof(properties));
+                if (property.IsPrimaryKey())
+                    throw new ArgumentException($"Property '{name}' is a primary key and cannot be updated.", nameof(properties));
+                if (entityType.FindNavigation(name) != null || entityType.FindSkipNavigation(name) != null)
+                    throw new ArgumentException($"Property '{name}' is a navigation and cannot be updated.", nameof(properties));
+            }
 
             if (entity.Id == Guid.Empty)
                 throw new InvalidOperationException("Entity must have a valid Id for partial update.");
 
             var entry = _dbContext.Entry(entity);
-            if (entry.State == EntityState.Detached)
+            var local = _dbContext.Set<TEntity>().Local.FirstOrDefault(e => e.Id == entity.Id);
+            if (local != null && !ReferenceEquals(local, entity))
             {
-                _dbContext.Set<TEntity>().Attach(entity);
+                foreach (var propName in properties)
+                {
+                    var metadata = entityType.FindProperty(propName);
+                    if (metadata?.PropertyInfo != null) metadata.PropertyInfo.SetValue(local, metadata.PropertyInfo.GetValue(entity));
+                }
+                entity = local;
+                entry = _dbContext.Entry(entity);
+            }
+            else if (entry.State == EntityState.Detached)
+            {
+                var tracked = _dbContext.Set<TEntity>().Local.FirstOrDefault(e => e.Id == entity.Id);
+                if (tracked != null)
+                {
+                    foreach (var propName in properties)
+                    {
+                        var metadata = entityType.FindProperty(propName);
+                        if (metadata != null && !metadata.IsPrimaryKey())
+                            metadata.PropertyInfo?.SetValue(tracked, metadata.PropertyInfo?.GetValue(entity));
+                    }
+                    entity = tracked;
+                    entry = _dbContext.Entry(entity);
+                }
+                else
+                {
+                    _dbContext.Set<TEntity>().Attach(entity);
+                }
                 entry.State = EntityState.Unchanged;
             }
 
@@ -141,6 +181,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                 await UpdateAsync(entity, ct);
                 return true;
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch
             {
                 return false;
@@ -163,30 +207,17 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
             if (predicate == null) throw new ArgumentNullException(nameof(predicate));
             if (updateAction == null) throw new ArgumentNullException(nameof(updateAction));
 
-            // Créer une nouvelle expression qui applique updateAction PUIS LastModifiedOnUtc
-            var param = Expression.Parameter(typeof(SetPropertyCalls<TEntity>), "s");
-
-            // Appel à updateAction(s)
-            var call1 = Expression.Invoke(updateAction, param);
-
-            // Appel à SetProperty pour LastModifiedOnUtc
-            var setLastModified = typeof(SetPropertyCalls<TEntity>)
-                .GetMethod(nameof(SetPropertyCalls<TEntity>.SetProperty))!
-                .MakeGenericMethod(typeof(DateTime));
-
-            var propertyExpr = Expression.Lambda<Func<TEntity, DateTime>>(
-                Expression.Property(Expression.Parameter(typeof(TEntity), "x"), nameof(BaseEntity.LastModifiedOnUtc)),
-                Expression.Parameter(typeof(TEntity), "x"));
-
-            var valueExpr = Expression.Constant(DateTime.UtcNow, typeof(DateTime));
-            var call2 = Expression.Call(call1, setLastModified, propertyExpr, valueExpr);
-
-            var finalExpression = Expression.Lambda<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>>(call2, param);
-
-            return await _dbContext.Set<TEntity>()
+            var query = _dbContext.Set<TEntity>()
                 .Where(predicate)
-                .Where(e => !e.IsDeleted)
-                .ExecuteUpdateAsync(finalExpression);
+                .Where(e => !e.IsDeleted);
+
+            var affected = await query.ExecuteUpdateAsync(updateAction);
+            if (affected == 0)
+                return 0;
+
+            await query.ExecuteUpdateAsync(setters => setters
+                .SetProperty(e => e.LastModifiedOnUtc, DateTime.UtcNow));
+            return affected;
         }
         #endregion
     }

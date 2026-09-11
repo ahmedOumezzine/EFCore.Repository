@@ -167,7 +167,8 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         }
         /// <summary>
         /// Insert or update (Upsert) based on a predicate.
-        /// ⚠️ Not atomic — use with unique constraints and error handling in production.
+        /// Not guaranteed to be atomic across concurrent callers. Use a unique constraint and
+        /// provider-specific upsert when concurrent writers require atomicity.
         /// </summary>
         public async Task UpsertAsync<TEntity>(
             Expression<Func<TEntity, bool>> predicate,
@@ -182,9 +183,11 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
 
             if (exists)
             {
-                // Mettre à jour LastModifiedOnUtc automatiquement
+                var existing = await _dbContext.Set<TEntity>().FirstAsync(predicate, cancellationToken);
+                if (existing.Id != entity.Id)
+                    throw new InvalidOperationException("The upsert predicate matched an entity with a different Id.");
                 entity.LastModifiedOnUtc = DateTime.UtcNow;
-                _dbContext.Set<TEntity>().Update(entity);
+                _dbContext.Entry(existing).CurrentValues.SetValues(entity);
             }
             else
             {

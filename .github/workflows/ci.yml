@@ -1,0 +1,18 @@
+name: build
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+      - run: dotnet restore EFCore.Repository.sln
+      - run: dotnet build EFCore.Repository.sln -c Release --no-restore
+      - run: dotnet test EFCore.Repository.sln -c Release --no-build --filter "TestCategory!=Performance&TestCategory!=SqlServer"
+      - run: dotnet pack src/AhmedOumezzine.EFCore.Repository/AhmedOumezzine.EFCore.Repository.csproj -c Release --no-build --no-restore

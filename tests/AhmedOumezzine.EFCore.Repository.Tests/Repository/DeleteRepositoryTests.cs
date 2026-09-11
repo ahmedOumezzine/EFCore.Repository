@@ -1,4 +1,4 @@
-﻿using AhmedOumezzine.EFCore.Repository.Repository;
+using AhmedOumezzine.EFCore.Repository.Repository;
 using AhmedOumezzine.EFCore.Tests.Entity;
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +21,24 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         #region Soft Delete (Mark as Deleted)
 
         [TestMethod]
+        public async Task DeleteAsync_DetachedEntity_ShouldPreserveBusinessColumns()
+        {
+            var entity = new TestEntity { Name = "Original", Description = "Important" };
+            await SeedDeletedAsync(entity);
+            var detached = new TestEntity { Id = entity.Id };
+            var repo = CreateRepository();
+
+            await repo.DeleteAsync(detached);
+
+            using var context = CreateDbContext();
+            var stored = await context.TestEntities.IgnoreQueryFilters().SingleAsync(e => e.Id == entity.Id);
+            Assert.AreEqual("Original", stored.Name);
+            Assert.AreEqual("Important", stored.Description);
+            Assert.IsTrue(stored.IsDeleted);
+        }
+
+
+        [TestMethod]
         public async Task DeleteAsync_ShouldSoftDeleteEntityAndSetDeletedProperties()
         {
             // Arrange
@@ -37,7 +55,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             Assert.IsTrue(deletedEntity.IsDeleted);
             Assert.IsNotNull(deletedEntity.DeletedOnUtc);
             Assert.IsTrue(deletedEntity.DeletedOnUtc >= beforeDelete);
-            Assert.AreEqual(0, CreateDbContext().TestEntities.Count()); // The query filter should hide it.
+            Assert.AreEqual(0, CreateDbContext().TestEntities.Count(e => !e.IsDeleted));
         }
 
         [TestMethod]
@@ -51,7 +69,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
             await _repo.DeleteAsync(entities);
 
             // Assert
-            var count = CreateDbContext().TestEntities.Count();
+            var count = CreateDbContext().TestEntities.Count(e => !e.IsDeleted);
             Assert.AreEqual(0, count);
             var deletedCount = CreateDbContext().TestEntities.IgnoreQueryFilters().Count();
             Assert.AreEqual(3, deletedCount);
@@ -85,7 +103,8 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
 
             // Assert
             Assert.IsTrue(result);
-            Assert.AreEqual(0, CreateDbContext().TestEntities.Count());
+            var stored = await CreateDbContext().TestEntities.IgnoreQueryFilters().SingleAsync(e => e.Id == entity.Id);
+            Assert.IsTrue(stored.IsDeleted);
         }
 
         [TestMethod]
@@ -115,7 +134,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         {
             // Arrange
             var entity = _fixture.Create<TestEntity>();
-            await _repo.InsertAsync(entity);
+            await SeedDeletedAsync(entity);
 
             // Act
             await _repo.HardDeleteAsync(entity);
@@ -221,7 +240,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         {
             // Arrange
             var entity = new TestEntity { IsDeleted = true, DeletedOnUtc = DateTime.UtcNow };
-            await _repo.InsertAsync(entity);
+            await SeedDeletedAsync(entity);
 
             // Act
             var rowsAffected = await _repo.RestoreAsync(entity);
@@ -254,7 +273,7 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
         {
             // Arrange
             var entity = new TestEntity { IsDeleted = true, DeletedOnUtc = DateTime.UtcNow };
-            await _repo.InsertAsync(entity);
+            await SeedDeletedAsync(entity);
 
             // Act
             var result = await _repo.RestoreByIdAsync<TestEntity>(entity.Id);

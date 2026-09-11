@@ -74,7 +74,25 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
             entity.LastModifiedOnUtc = DateTime.UtcNow;
-        } 
+        }
+
+        private void MarkSoftDeleteProperties<TEntity>(TEntity entity) where TEntity : BaseEntity
+        {
+            var tracked = _dbContext.Set<TEntity>().Local.FirstOrDefault(e => e.Id == entity.Id);
+            if (tracked != null && !ReferenceEquals(tracked, entity))
+            {
+                tracked.IsDeleted = entity.IsDeleted;
+                tracked.DeletedOnUtc = entity.DeletedOnUtc;
+                tracked.LastModifiedOnUtc = entity.LastModifiedOnUtc;
+                entity = tracked;
+            }
+            var entry = _dbContext.Entry(entity);
+            if (entry.State == EntityState.Detached)
+                _dbContext.Set<TEntity>().Attach(entity);
+            entry.Property(nameof(BaseEntity.IsDeleted)).IsModified = true;
+            entry.Property(nameof(BaseEntity.DeletedOnUtc)).IsModified = true;
+            entry.Property(nameof(BaseEntity.LastModifiedOnUtc)).IsModified = true;
+        }
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
         {

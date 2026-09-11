@@ -26,10 +26,10 @@ namespace AhmedOumezzine.EFCore.Repository.Tests
                 .With(e => e.IsDeleted, true)
                 .Create();
 
-            _parentEntity = _fixture.Create<ParentEntity>();
-            _parentEntity.Children = _fixture.Build<ChildEntity>()
-                .With(c => c.ParentId, _parentEntity.Id)
-                .CreateMany(2).ToList();
+            _parentEntity = new ParentEntity { Id = Guid.NewGuid(), Name = "Parent" };
+            _parentEntity.Children = Enumerable.Range(1, 2)
+                .Select(i => new ChildEntity { Id = Guid.NewGuid(), Name = $"Child{i}", ParentId = _parentEntity.Id })
+                .ToList();
 
             var context = CreateDbContext();
             await context.TestEntities.AddRangeAsync(_activeEntity, _deletedEntity);

@@ -246,6 +246,10 @@ namespace AhmedOumezzine.EFCore.Repository.Repository
                     : await GetListAsync(condition, ct);
                 return (true, items);
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch
             {
                 return (false, new List<TEntity>());
